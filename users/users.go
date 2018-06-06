@@ -1,0 +1,432 @@
+package users
+
+import (
+	"database/sql"
+	"encoding/hex"
+	"encoding/json"
+	"errors"
+	"fmt"
+	"strings"
+	"sync"
+	"time"
+
+	"golang.org/x/crypto/sha3"
+
+	l "github.com/daominah/livestream/language"
+	"github.com/daominah/livestream/zdatabase"
+)
+
+const (
+	ROLE_ADMIN       = "ROLE_ADMIN"
+	ROLE_BROADCASTER = "ROLE_BROADCASTER"
+	ROLE_USER        = "ROLE_USER"
+
+	// money types
+	MT_CASH               = "MT_CASH"
+	MT_EXPERIENCE         = "MT_EXPERIENCE"
+	MT_ONLINE_DURATION    = "MT_ONLINE_DURATION"
+	MT_BROADCAST_DURATION = "MT_BROADCAST_DURATION"
+
+	// money log reasons
+	REASON_ADMIN_CHANGE = "REASON_ADMIN_CHANGE"
+
+	STATUS_OFFLINE      = "STATUS_OFFLINE"
+	STATUS_ONLINE       = "STATUS_ONLINE"
+	STATUS_BROADCASTING = "STATUS_BROADCASTING"
+	STATUS_WATCHING     = "STATUS_WATCHING"
+	STATUS_PLAYING_GAME = "STATUS_PLAYING_GAME"
+)
+
+// mofify this list to add money types
+var MONEY_TYPES []string
+
+// remember to lock when read/write this map
+var MapIdToUser map[int64]*User
+
+// locker for MapUsers
+var GMutex sync.Mutex
+
+func init() {
+	MONEY_TYPES = []string{
+		MT_CASH, MT_EXPERIENCE, MT_ONLINE_DURATION, MT_BROADCAST_DURATION,
+	}
+	MapIdToUser = make(map[int64]*User)
+}
+
+type User struct {
+	Id           int64
+	Username     string
+	Role         string
+	IsSuspended  bool
+	RealName     string
+	NationalId   string
+	Phone        string
+	Email        string
+	Country      string
+	Address      string
+	ProfileName  string
+	ProfileImage string
+	Summary      string
+	// json: {"skype": "daominah"}
+	Misc        string
+	CreatedTime time.Time
+
+	// map moneyType to value, this map is only for caching;
+	// if u want change user money, use func changeUserMoney
+	MapMoney map[string]float64
+
+	NFollowers int
+	NFollowing int
+	// base on MT_ONLINE_DURATION
+	Level int
+	// base on purchased cash in month
+	LevelVip int
+
+	StatusL1 string
+	// json: {"Game": "GAME_TAIXIU"}, {"Video": 92}
+	StatusL2 string
+	//
+	Mutex sync.Mutex
+}
+
+func (u *User) ToString() string {
+	u.Mutex.Lock()
+	defer u.Mutex.Unlock()
+	bs, e := json.MarshalIndent(u, "", "    ")
+	if e != nil {
+		return "{}"
+	}
+	return string(bs)
+}
+
+func (u *User) ToMap() map[string]interface{} {
+	result := make(map[string]interface{})
+	s := u.ToString()
+	json.Unmarshal([]byte(s), &result)
+	return result
+}
+
+func (u *User) ToShortMap() map[string]interface{} {
+	result := map[string]interface{}{
+		"Id":           u.Id,
+		"ProfileName":  u.ProfileName,
+		"ProfileImage": u.ProfileImage,
+		"StatusL1":     u.StatusL1,
+		"StatusL2":     u.StatusL2,
+	}
+	return result
+}
+
+// name is list of alphanumeric characters or _ or @
+func NormalizeName(name string) string {
+	alphanumericChars :=
+		"abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_@"
+	// set of alphanumeric chars
+	mapChars := map[string]bool{}
+	for _, r := range alphanumericChars {
+		c := fmt.Sprintf("%c", r)
+		mapChars[c] = true
+	}
+	cs := []string{}
+	for _, r := range name {
+		c := fmt.Sprintf("%c", r)
+		if mapChars[c] {
+			cs = append(cs, c)
+		}
+	}
+	good := strings.Join(cs, "")
+	return good
+}
+
+// use sha3_512 algo, return hex encoding
+func HassPassword(password string) string {
+	h := sha3.New512()
+	h.Write([]byte(password))
+	resultBs := h.Sum(nil)
+	resultHex := hex.EncodeToString(resultBs)
+	return resultHex
+}
+
+// return userId, error
+func CreateUser(username string, password string) (int64, error) {
+	username = NormalizeName(username)
+	row := zdatabase.DbPool.QueryRow(
+		`INSERT INTO "user"
+    		(username, hashed_password, login_session, profile_name)
+		VALUES ($1, $2, 'hohohaha', $3) RETURNING id`,
+		username, HassPassword(password), username)
+	var id int64
+	e := row.Scan(&id)
+	if e != nil {
+		return 0, errors.New(l.Get(l.M001DuplicateUsername))
+	}
+
+	ts := []string{}
+	args := []interface{}{}
+	for i, moneyType := range MONEY_TYPES {
+		ts = append(ts, fmt.Sprintf("($%v, $%v, $%v)", 3*i+1, 3*i+2, 3*i+3))
+		args = append(args, []interface{}{id, moneyType, float64(0)}...)
+	}
+	queryPart := strings.Join(ts, ", ")
+	_, e = zdatabase.DbPool.Exec(fmt.Sprintf(
+		`INSERT INTO user_money (user_id, money_type, val)
+	    VALUES %v`, queryPart),
+		args...)
+	if e != nil {
+		return 0, e
+	}
+
+	LoadUser(id)
+
+	return id, nil
+}
+
+// load user data from database to MapIdToUser, this map is only for caching,
+// this func creates new moneyType from MONEY_TYPES if necessary
+func LoadUser(id int64) (*User, error) {
+	var username, role, real_name, national_id, phone, email, country string
+	var address, profile_name, profile_image, summary, misc string
+	var is_suspended bool
+	var created_time time.Time
+
+	row := zdatabase.DbPool.QueryRow(
+		`SELECT username, role, real_name, national_id, phone, email, country, 
+		    address, profile_name, profile_image, summary, misc, 
+		    is_suspended, created_time
+    	FROM "user"
+    	WHERE id = $1 `, id)
+	e := row.Scan(
+		&username, &role, &real_name, &national_id, &phone, &email, &country,
+		&address, &profile_name, &profile_image, &summary, &misc,
+		&is_suspended, &created_time)
+	if e != nil {
+		return nil, e
+	}
+	user := &User{Id: id, Username: username, Role: role, RealName: real_name,
+		NationalId: national_id, Phone: phone, Email: email, Country: country,
+		Address: address, ProfileName: profile_name, ProfileImage: profile_image,
+		Summary: summary, Misc: misc,
+		IsSuspended: is_suspended, CreatedTime: created_time}
+
+	user.MapMoney = make(map[string]float64)
+	for _, moneyType := range MONEY_TYPES {
+		var val float64
+		row = zdatabase.DbPool.QueryRow(
+			`SELECT val FROM user_money
+    			WHERE user_id = $1 AND money_type = $2 `,
+			id, moneyType,
+		)
+		e := row.Scan(&val)
+		if e == sql.ErrNoRows {
+			zdatabase.DbPool.Exec(
+				`INSERT INTO user_money (user_id, money_type, val)
+            	    VALUES ($1, $2, $3)`, id, moneyType, 0)
+		} else if e != nil {
+			return nil, e
+		}
+		user.Mutex.Lock()
+		user.MapMoney[moneyType] = val
+		user.Mutex.Unlock()
+	}
+	user.Level = int(user.MapMoney[MT_ONLINE_DURATION])
+	user.LevelVip = 15
+
+	user.NFollowers = len(LoadFollowers(id))
+	user.NFollowing = len(LoadFollowing(id))
+
+	GMutex.Lock()
+	MapIdToUser[id] = user
+	GMutex.Unlock()
+
+	return user, nil
+}
+
+// try to read data in ram,
+// if cant: read data from database
+func GetUser(userId int64) (*User, error) {
+	GMutex.Lock()
+	u := MapIdToUser[userId]
+	GMutex.Unlock()
+	if u != nil {
+		return u, nil
+	} else {
+		return LoadUser(userId)
+	}
+}
+
+func LoadFollowers(userId int64) []int64 {
+	result := make([]int64, 0)
+	rows, err := zdatabase.DbPool.Query(
+		`SELECT user_id_1 FROM user_following
+		WHERE user_id_2 = $1`,
+		userId)
+	if err != nil {
+		return result
+	}
+	defer rows.Close()
+	for rows.Next() {
+		var follower int64
+		e := rows.Scan(&follower)
+		if e != nil {
+			fmt.Println("ERROR GetFollowers", e)
+		}
+		result = append(result, follower)
+	}
+	return result
+}
+
+func LoadFollowing(userId int64) []int64 {
+	result := make([]int64, 0)
+	rows, err := zdatabase.DbPool.Query(
+		`SELECT user_id_2 FROM user_following
+		WHERE user_id_1 = $1`,
+		userId)
+	if err != nil {
+		return result
+	}
+	defer rows.Close()
+	for rows.Next() {
+		var following int64
+		e := rows.Scan(&following)
+		if e != nil {
+			fmt.Println("ERROR GetFollowing", e)
+		}
+		result = append(result, following)
+	}
+	return result
+}
+
+// return userObj, cookie, error
+func LoginByPassword(username string, password string) (
+	*User, string, error) {
+	row := zdatabase.DbPool.QueryRow(
+		`SELECT id
+		FROM "user"
+		WHERE username = $1 AND hashed_password = $2`,
+		NormalizeName(username), HassPassword(password))
+	var id int64
+	e := row.Scan(&id)
+	if e != nil {
+		return nil, "", errors.New(l.Get(l.M002InvalidLogin))
+	}
+
+	cookieData := map[string]string{
+		"userId":    fmt.Sprintf("%v", id),
+		"loginTime": time.Now().Format(time.RFC3339Nano)}
+	cookiePlainBs, _ := json.Marshal(cookieData)
+	// cookiePlain := string(cookiePlainBs)
+	cookie := hex.EncodeToString(cookiePlainBs)
+	zdatabase.DbPool.Exec(
+		`UPDATE "user" SET login_session = $1 WHERE id = $2`,
+		cookie, id)
+
+	u, e := LoadUser(id)
+	u.StatusL1 = STATUS_ONLINE
+	return u, cookie, e
+}
+
+// return userObj, error
+func LoginByCookie(login_session string) (*User, error) {
+	row := zdatabase.DbPool.QueryRow(
+		`SELECT id
+		FROM "user"
+		WHERE login_session = $1 `,
+		login_session)
+	var id int64
+	e := row.Scan(&id)
+	if e != nil {
+		return nil, errors.New(l.Get(l.M002InvalidLogin))
+	} else {
+		u, e := LoadUser(id)
+		u.StatusL1 = STATUS_ONLINE
+		return u, e
+	}
+}
+
+//
+func SuspendUser(userId int64, isSuspended bool) error {
+	_, e := zdatabase.DbPool.Exec(
+		`UPDATE "user" SET is_suspended = $1 WHERE id = $2`,
+		isSuspended, userId)
+	// update cache
+	if e == nil {
+		GMutex.Lock()
+		if MapIdToUser[userId] != nil {
+			MapIdToUser[userId].IsSuspended = isSuspended
+		}
+		GMutex.Unlock()
+	}
+	return e
+}
+
+func ChangeUserRole(userId int64, newRole string) error {
+	_, e := zdatabase.DbPool.Exec(
+		`UPDATE "user" SET role = $1 WHERE id = $2`,
+		newRole, userId)
+	// update cache
+	if e == nil {
+		GMutex.Lock()
+		if MapIdToUser[userId] != nil {
+			MapIdToUser[userId].Role = newRole
+		}
+		GMutex.Unlock()
+	}
+	return e
+}
+
+func Follow(userId int64, targetId int64) error {
+	_, e := zdatabase.DbPool.Exec(
+		`INSERT INTO user_following (user_id_1, user_id_2)
+		VALUES ($1, $2)`,
+		userId, targetId)
+	// update cache
+	if e == nil {
+		GMutex.Lock()
+		if MapIdToUser[userId] != nil {
+			MapIdToUser[userId].NFollowing += 1
+		}
+		if MapIdToUser[targetId] != nil {
+			MapIdToUser[targetId].NFollowers += 1
+		}
+		GMutex.Unlock()
+	}
+	return e
+}
+
+func Unfollow(userId int64, targetId int64) error {
+	r, e := zdatabase.DbPool.Exec(
+		`DELETE FROM user_following 
+		WHERE user_id_1 = $1 AND user_id_2 = $2`,
+		userId, targetId)
+	// update cache
+	if e == nil {
+		nRowsAffected, _ := r.RowsAffected()
+		if nRowsAffected != 0 {
+			GMutex.Lock()
+			if MapIdToUser[userId] != nil {
+				MapIdToUser[userId].NFollowing -= 1
+			}
+			if MapIdToUser[targetId] != nil {
+				MapIdToUser[targetId].NFollowers -= 1
+			}
+			GMutex.Unlock()
+		}
+	}
+	return e
+}
+
+func GetUsernameById(userId int64) (string, error) {
+	u, e := GetUser(userId)
+	if e != nil {
+		return "", e
+	}
+	return u.Username, nil
+}
+
+func GetProfilenameById(userId int64) (string, error) {
+	u, e := GetUser(userId)
+	if e != nil {
+		return "", e
+	}
+	return u.ProfileName, nil
+}

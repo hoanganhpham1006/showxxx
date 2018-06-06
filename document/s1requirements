@@ -1,0 +1,48 @@
+Connection websocket
+    A connection needs to authenticate in 300s, if it doesnt: close.
+    If a new connection authenticate by a userId the same as old connection: close the old connection.
+
+User
+    Create user
+    Suspend user
+    Change user role ROLE_ADMIN, ROLE_BROADCASTER, ROLE_USER
+    Change user money
+    Transfer money from user1 to user2 (can include tax)
+    View user's money log
+    User follow/unfollow other
+    User add/remove other to his room conversation moderators
+    View user profile
+        rarely change: id, username, role, country, address, profile name, profile image, real name, summary, team
+        usually change: online status, cash, experience, online duration, broadcast duration
+            online status level 1: STATUS_OFFLINE,  STATUS_ONLINE, STATUS_BROADCASTING, STATUS_WATCHING, STATUS_PLAYING_GAME
+            online status level 2: json: {"Game": "GAME_TAIXIU"}, {"Video": 92}
+        top: received cash, sent cash, purchased cash in the past day/week/month.
+        calculated: level (base on online duration), vip level (base on purchased cash in month)
+        multi value: followers, following, room conversation moderators, unique viewers, top cheerers
+
+Conversation
+    User view list all/unread/pair conversations that he is in, sort by last message.
+    Moderator set a member become moderator
+    Moderator block a member in conversation (this member cant send message)
+    Member mute a conversation (user wont be noticed when conversation has a new message)
+    Two users can only have one pair conversation between them (and they cant leave the conversation)
+    AddUser/RemoveMember from group conversation
+    View info: id, name, type (pair/group), members, messages
+
+Team
+    View info: creater, members, profit ratio
+    Broadcaster can only have one team
+    Broadcaster create/requestJoin team
+    Add/Remove a broadcaster from team
+    
+
+Cheer
+    View info: id, image, cost
+    User cheers for broadcaster 
+    User cheers for broadcaster in a team
+
+Video
+    View info: id, creater, startedTime, finishedTime, viewers, conversation
+    User cheer (gift will be split among creater's team)
+    User chat normal, big, global
+

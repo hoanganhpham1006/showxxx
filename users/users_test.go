@@ -1,0 +1,163 @@
+package users
+
+import (
+	"encoding/json"
+	"errors"
+	"fmt"
+	"sync"
+	"testing"
+	"time"
+)
+
+func Test01(t *testing.T) {
+	fmt.Print("")
+	cases := [][]string{
+		[]string{"Đào Thị Lán", "oThLn"},
+		[]string{"tung.daothanhtung@gmail.com", "tungdaothanhtung@gmailcom"},
+		[]string{"ta_la_Tung_208^^hohohaha", "ta_la_Tung_208hohohaha"},
+		[]string{"Lisbeth Salander", "LisbethSalander"},
+	}
+	for _, c := range cases {
+		name := c[0]
+		r := c[1]
+		e := NormalizeName(name)
+		if r != e {
+			t.Error(name, r, e)
+		}
+	}
+}
+
+func Test02(t *testing.T) {
+	cases := [][]string{
+		[]string{"123qwe", "164f04b29f50874c9330ee60d23a6ff04279c8b21a79afb5721602c6b97e2ac24d7c2070eba5827cab5f3b503bfac26539ec479921c1abadeac4980fcbf3b8a6"},
+	}
+	for _, c := range cases {
+		pw := c[0]
+		r := c[1]
+		e := HassPassword(pw)
+		if r != e {
+			t.Error(pw, r, e)
+		}
+	}
+}
+
+func Test03(t *testing.T) {
+	var e error
+	var user *User
+	var cookie string
+	var waitGroup sync.WaitGroup
+	user, cookie, e = LoginByPassword("daominah", "123qwe")
+	if e != nil {
+		t.Error(e)
+	}
+	user, e = LoginByCookie(cookie)
+	if e != nil {
+		t.Error(e)
+	}
+	//	fmt.Println(user.ToString())
+	moneyType := MT_CASH
+	nChanges := 1000
+	mb := user.MapMoney[moneyType]
+	mb1 := MapIdToUser[user.Id].MapMoney[moneyType]
+	for i := 0; i < nChanges; i++ {
+		waitGroup.Add(1)
+		go func() {
+			e = ChangeUserMoney(user.Id, moneyType, 1, REASON_ADMIN_CHANGE)
+			waitGroup.Done()
+		}()
+	}
+	waitGroup.Wait()
+	ma1 := MapIdToUser[user.Id].MapMoney[moneyType]
+	user, _ = LoginByCookie(cookie)
+	fmt.Println(user.ToString())
+	ma := user.MapMoney[moneyType]
+	if ma-mb != float64(nChanges) {
+		t.Error("ma-mb != nChanges")
+	}
+	if ma1-mb1 != float64(nChanges) {
+		t.Error("ma1-mb1 != nChanges                                                                      ")
+	}
+}
+
+func Test04(t *testing.T) {
+	fT, _ := time.Parse(time.RFC3339Nano, "2018-05-28T15:20:25.606000000+07:00")
+	tT, _ := time.Parse(time.RFC3339Nano, "2018-05-28T15:20:25.612000000+07:00")
+	rs, e := ViewMoneyLog(1, fT, tT)
+	prettyBs, _ := json.MarshalIndent(rs, "", "    ")
+	_, _ = e, string(prettyBs)
+	//	fmt.Println(e, string(prettyBs))
+}
+
+func Test05(t *testing.T) {
+	id1 := int64(1)
+	id2 := int64(2)
+	Unfollow(id1, id2)
+	u2, _ := LoadUser(id2)
+	nFollowers1 := u2.NFollowers
+	e1 := Follow(id1, id2)
+	e2 := Follow(id1, id2)
+	nFollowers2 := u2.NFollowers
+	e3 := Unfollow(id1, id2)
+	e4 := Unfollow(id1, id2)
+	if !((e1 == nil) && (e2 != nil) && (e3 == nil) && (e4 == nil)) {
+		t.Error(e1, e2, e3, e4)
+	}
+	nFollowers3 := u2.NFollowers
+	if nFollowers2-nFollowers1 != 1 {
+		t.Error(nFollowers2-nFollowers1, " != 1")
+	}
+	if nFollowers3-nFollowers2 != -1 {
+		t.Error(nFollowers3-nFollowers2, " != -1")
+	}
+}
+
+func Test06(t *testing.T) {
+	Follow(1, 2)
+	Follow(3, 2)
+	// fmt.Println("GetFollowers(2)", GetFollowers(2))
+}
+
+func Test07(t *testing.T) {
+	type Case struct {
+		UserId   int64
+		Username string
+		Err      error
+	}
+	for i, c := range []Case{
+		Case{1, "daominah", nil},
+		Case{2, "daominah2", nil},
+		Case{-1, "", errors.New("sql: no rows in result set")},
+	} {
+		realityF1, realityF2 := c.Username, c.Err
+		expectationF1, expectationF2 := GetUsernameById(c.UserId)
+		// fmt.Println("GetUsernameById", c.UserId, realityF1, realityF2, expectationF1, expectationF2)
+		if !((realityF1 == expectationF1) &&
+			((realityF2 == nil && expectationF2 == nil) ||
+				(realityF2 != nil && expectationF2 != nil) &&
+					(realityF2.Error() == expectationF2.Error()))) {
+			t.Error(i)
+		}
+	}
+}
+
+func Test08(t *testing.T) {
+	type Case struct {
+		UserId      int64
+		ProfileName string
+		Err         error
+	}
+	for i, c := range []Case{
+		Case{1, "Dao Min Ah A", nil},
+		Case{2, "Dao Min Ah B", nil},
+		Case{-1, "", errors.New("sql: no rows in result set")},
+	} {
+		realityF1, realityF2 := c.ProfileName, c.Err
+		expectationF1, expectationF2 := GetProfilenameById(c.UserId)
+		if !((realityF1 == expectationF1) &&
+			((realityF2 == nil && expectationF2 == nil) ||
+				(realityF2 != nil && expectationF2 != nil) &&
+					(realityF2.Error() == expectationF2.Error()))) {
+			t.Error(i)
+		}
+	}
+}
