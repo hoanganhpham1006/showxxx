@@ -70,7 +70,7 @@ func ListenAndServe(
 		c := CreateConnection(ws)
 		go c.readPump(serverCommandHandler)
 		go c.writePump()
-		tPrint("Connection created: ", c)
+		tPrint("Connection created: ", c.WsConn.RemoteAddr(), c)
 	})
 }
 
@@ -95,7 +95,7 @@ type Connection struct {
 // messageHandler is what to do after receive message from peer,
 // messageHandler == nil: just print message
 func (c *Connection) readPump(messageHandler func(*Connection, []byte)) {
-	defer tPrint("Connection readPump ended", c)
+	defer tPrint("Connection readPump ended", c.WsConn.RemoteAddr(), c)
 	c.WsConn.SetReadLimit(zconfig.WebsocketMaxMessageSize)
 	c.WsConn.SetReadDeadline(time.Now().Add(zconfig.WebsocketReadWait))
 	c.WsConn.SetPongHandler(func(string) error {
@@ -110,8 +110,8 @@ func (c *Connection) readPump(messageHandler func(*Connection, []byte)) {
 			c.WsConn.Close()
 			return
 		} else {
-			tPrintf("Connection readPump message %v:\n%v\n",
-				time.Now(), string(message))
+			tPrintf("Connection readPump message %v %v:\n%v\n",
+				time.Now(), c.WsConn.RemoteAddr(), string(message))
 		}
 		if messageHandler != nil {
 			go messageHandler(c, message)
@@ -133,8 +133,8 @@ func (c *Connection) writePump() {
 			c.WsConn.SetWriteDeadline(time.Now().Add(zconfig.WebsocketWriteWait))
 			writeErr = c.WsConn.WriteMessage(websocket.TextMessage, message)
 			if writeErr == nil {
-				tPrintf("Connection writePump message %v:\n%v\n",
-					time.Now(), string(message))
+				tPrintf("Connection writePump message %v %v:\n%v\n",
+					time.Now(), c.WsConn.RemoteAddr(), string(message))
 			}
 		case <-ticker.C:
 			c.WsConn.SetWriteDeadline(time.Now().Add(zconfig.WebsocketWriteWait))
