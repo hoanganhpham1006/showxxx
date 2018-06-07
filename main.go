@@ -27,7 +27,7 @@ func main() {
 	}()
 	runtime.SetBlockProfileRate(1)
 
-	//	zdatabase.InitTables()
+	zdatabase.InitTables()
 	connections.ListenAndServe(serverCommandHandler)
 	select {}
 }

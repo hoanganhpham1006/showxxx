@@ -42,6 +42,7 @@ var MONEY_TYPES []string
 
 // remember to lock when read/write this map
 var MapIdToUser map[int64]*User
+var MapIdToTeam map[int64]*Team
 
 // locker for MapUsers
 var GMutex sync.Mutex
@@ -51,6 +52,7 @@ func init() {
 		MT_CASH, MT_EXPERIENCE, MT_ONLINE_DURATION, MT_BROADCAST_DURATION,
 	}
 	MapIdToUser = make(map[int64]*User)
+	MapIdToTeam = make(map[int64]*Team)
 }
 
 type User struct {

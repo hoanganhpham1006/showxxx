@@ -181,3 +181,62 @@ func ConversationMarkMessage(userId int64, messageId int64, hasSeen bool) (
 	e := conversations.UserMarkMessage(userId, messageId, hasSeen)
 	return nil, e
 }
+
+func TeamCreate(
+	createrId int64, teamName string, teamImage string, teamSummary string) (
+	map[string]interface{}, error) {
+	teamId, err := users.CreateTeam(teamName, teamImage, teamSummary)
+	if err != nil {
+		return nil, err
+	}
+	err = users.AddTeamMember(teamId, createrId)
+	if err != nil {
+		return nil, err
+	}
+	err = users.SetTeamCaptain(teamId, createrId)
+	if err != nil {
+		return nil, err
+	}
+	return map[string]interface{}{"TeamId": teamId}, nil
+}
+func TeamDetail(teamId int64) (
+	map[string]interface{}, error) {
+	team, err := users.GetTeam(teamId)
+	if err != nil {
+		return nil, err
+	}
+	return team.ToMap(), nil
+}
+func TeamLoadJoiningRequests(teamId int64) (
+	map[string]interface{}, error) {
+	rows, err := users.LoadTeamJoiningRequests(teamId)
+	if err != nil {
+		return nil, err
+	}
+	return map[string]interface{}{"JoiningRequest": rows}, nil
+}
+func TeamRemoveMember(teamId int64, userId int64) (
+	map[string]interface{}, error) {
+	err := users.RemoveTeamMember(teamId, userId)
+	if err != nil {
+		return nil, err
+	}
+	return nil, nil
+}
+func TeamRequestJoin(teamId int64, userId int64) (
+	map[string]interface{}, error) {
+	err := users.RequestJoinTeam(teamId, userId)
+	return nil, err
+}
+func TeamHandleJoiningRequest(teamId int64, userId int64, isAccepted bool) (
+	map[string]interface{}, error) {
+	var err error
+	if isAccepted {
+		err = users.AddTeamMember(teamId, userId)
+		if err != nil {
+			return nil, err
+		}
+	}
+	err = users.RemoveRequestJoinTeam(teamId, userId)
+	return nil, err
+}

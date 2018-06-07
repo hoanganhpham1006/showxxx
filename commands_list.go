@@ -39,6 +39,7 @@ func serverCommandHandler(connection *connections.Connection, message []byte) {
 			d, e = UserLoginByCookie(
 				connection,
 				m.ReadString(data, "LoginSession"))
+
 		default:
 			d = map[string]interface{}{"message": string(message)}
 			e = errors.New(l.Get(l.M010CommandNotSupported))
@@ -107,10 +108,47 @@ func serverCommandHandler(connection *connections.Connection, message []byte) {
 				connection.UserId,
 				m.ReadInt64(data, "MessageId"),
 				m.ReadBool(data, "HasSeen"))
+
+		case "TeamCreate":
+			d, e = TeamCreate(
+				connection.UserId,
+				m.ReadString(data, "TeamName"),
+				m.ReadString(data, "TeamImage"),
+				m.ReadString(data, "TeamSummary"),
+			)
+		case "TeamDetail":
+			d, e = TeamDetail(
+				m.ReadInt64(data, "TeamId"),
+			)
+		case "TeamLoadJoiningRequests":
+			d, e = TeamLoadJoiningRequests(
+				m.ReadInt64(data, "TeamId"),
+			)
+		case "TeamRemoveMember":
+			d, e = TeamRemoveMember(
+				m.ReadInt64(data, "TeamId"),
+				m.ReadInt64(data, "UserId"),
+			)
+		case "TeamRequestJoin":
+			d, e = TeamRequestJoin(
+				m.ReadInt64(data, "TeamId"),
+				connection.UserId,
+			)
+		case "TeamHandleJoiningRequest":
+			d, e = TeamHandleJoiningRequest(
+				m.ReadInt64(data, "TeamId"),
+				m.ReadInt64(data, "UserId"),
+				m.ReadBool(data, "IsAccepted"),
+			)
+
 		default:
 			d = map[string]interface{}{"message": string(message)}
 			e = errors.New(l.Get(l.M010CommandNotSupported))
 		}
 	}
+	if d == nil {
+		d = map[string]interface{}{}
+	}
+	d["Command"] = command
 	connection.WriteMap(e, d)
 }

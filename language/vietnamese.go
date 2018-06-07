@@ -7,6 +7,10 @@ func init() {
 		M001DuplicateUsername: "Trùng tên đăng nhập",
 		M002InvalidLogin:      "Tên đăng nhập hoặc mật khẩu không đúng",
 
+		M012DuplicateTeamName:           "Tên đội bị trùng",
+		M013SetTeamCaptainOutsider:      "Chỉ có thành viên mới có thể thành đội trưởng",
+		M014DuplicateTeamJoiningRequest: "Bạn đã xin gia nhập đội này rồi, vui lòng chờ",
+
 		M003ConversationOutsider:      "Người ngoài nhóm không được gửi hoặc đọc tin nhắn",
 		M004ConversationBlockedMember: "Bạn đã bị chặn gửi tin cho nhóm này",
 		M005ConversationInvalidId:     "M005ConversationInvalidId",

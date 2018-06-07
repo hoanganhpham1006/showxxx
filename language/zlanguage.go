@@ -10,6 +10,10 @@ const (
 	M001DuplicateUsername = "M001DuplicateUsername"
 	M002InvalidLogin      = "M002InvalidLogin"
 
+	M012DuplicateTeamName           = "M012DuplicateTeamName"
+	M013SetTeamCaptainOutsider      = "M013SetTeamCaptainOutsider"
+	M014DuplicateTeamJoiningRequest = "M014DuplicateTeamJoiningRequest"
+
 	M003ConversationOutsider      = "M003ConversationOutsiderMessage"
 	M004ConversationBlockedMember = "M004ConversationBlockedMember"
 	M005ConversationInvalidId     = "M005ConversationInvalidId"
