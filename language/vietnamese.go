@@ -10,6 +10,9 @@ func init() {
 		M012DuplicateTeamName:           "Tên đội bị trùng",
 		M013SetTeamCaptainOutsider:      "Chỉ có thành viên mới có thể thành đội trưởng",
 		M014DuplicateTeamJoiningRequest: "Bạn đã xin gia nhập đội này rồi, vui lòng chờ",
+		M015MemberMultipleTeam:          "Bạn chỉ có thể là thành viên của một đội",
+		M016TeamMultipleCaptain:         "Một đội không được có nhiều đội trưởng",
+		M017TeamMemberPrivilege:         "Chỉ có đội trưởng có thể thay đổi thành viên của đội",
 
 		M003ConversationOutsider:      "Người ngoài nhóm không được gửi hoặc đọc tin nhắn",
 		M004ConversationBlockedMember: "Bạn đã bị chặn gửi tin cho nhóm này",
@@ -21,5 +24,8 @@ func init() {
 		M008Disconnected:        "Mất kết nối đến máy chủ",
 		M009LoggedInDiffDevice:  "Tài khoản của bạn bị đăng nhập từ thiết bị khác",
 		M010CommandNotSupported: "Câu lệnh không đúng",
+
+		M018NotEnoughMoney:    "Không đủ tiền",
+		M019MoneyTypeNotExist: "Loại tiền không tồn tại",
 	}
 }

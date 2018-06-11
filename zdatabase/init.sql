@@ -102,6 +102,22 @@ ALTER TABLE public.user_conversation_moderator OWNER TO vic_user;
 
 
 
+
+--
+CREATE TABLE public.user_login (
+    id BIGSERIAL, CONSTRAINT user_login_pkey PRIMARY KEY (id),
+    user_id BIGINT DEFAULT 0 REFERENCES public."user" (id),
+    login_time TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    logout_time TIMESTAMP WITH TIME ZONE DEFAULT '9999-01-01T00:00:00+07:00',
+    network_address TEXT DEFAULT '',
+    device_name TEXT DEFAULT '',
+    app_name TEXT DEFAULT ''
+);
+CREATE INDEX user_login_i01 ON public.user_login USING btree
+    (user_id, login_time);
+
+
+
 --
 CREATE TABLE public.conversation (
     id BIGSERIAL, CONSTRAINT conversation_pkey PRIMARY KEY (id),
@@ -188,3 +204,19 @@ CREATE TABLE public.team_joining_request (
     CONSTRAINT team_joining_request_pkey PRIMARY KEY (team_id, user_id),
     created_time TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
+
+
+
+--
+CREATE TABLE public.cheer (
+    id BIGSERIAL, CONSTRAINT cheer_pkey PRIMARY KEY (id),
+    cheerer_id BIGINT DEFAULT 0 REFERENCES public."user" (id),
+    target_user_id BIGINT DEFAULT 0 REFERENCES public."user" (id),
+    cheer_type TEXT DEFAULT '',  -- CHEER_FOR_USER, CHEER_FOR_TEAM
+    created_time TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    val DOUBLE PRECISION DEFAULT 0,
+    cheer_message TEXT DEFAULT '',
+    misc TEXT DEFAULT ''
+);
+CREATE INDEX cheer_i01 ON public.cheer USING btree (cheerer_id, created_time);
+CREATE INDEX cheer_i02 ON public.cheer USING btree (target_user_id, created_time);

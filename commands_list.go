@@ -9,7 +9,7 @@ import (
 	m "github.com/daominah/livestream/misc"
 )
 
-func serverCommandHandler(connection *connections.Connection, message []byte) {
+func doAfterReceivingMessage(connection *connections.Connection, message []byte) {
 	var data map[string]interface{}
 	parseTextErr := json.Unmarshal(message, &data)
 	if parseTextErr != nil {
@@ -34,11 +34,15 @@ func serverCommandHandler(connection *connections.Connection, message []byte) {
 			d, e = UserLoginByPassword(
 				connection,
 				m.ReadString(data, "Username"),
-				m.ReadString(data, "Password"))
+				m.ReadString(data, "Password"),
+				m.ReadString(data, "DeviceName"),
+				m.ReadString(data, "AppName"))
 		case "UserLoginByCookie":
 			d, e = UserLoginByCookie(
 				connection,
-				m.ReadString(data, "LoginSession"))
+				m.ReadString(data, "LoginSession"),
+				m.ReadString(data, "DeviceName"),
+				m.ReadString(data, "AppName"))
 
 		default:
 			d = map[string]interface{}{"message": string(message)}
@@ -126,6 +130,7 @@ func serverCommandHandler(connection *connections.Connection, message []byte) {
 			)
 		case "TeamRemoveMember":
 			d, e = TeamRemoveMember(
+				connection.UserId,
 				m.ReadInt64(data, "TeamId"),
 				m.ReadInt64(data, "UserId"),
 			)

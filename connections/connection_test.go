@@ -18,8 +18,8 @@ func Test01(t *testing.T) {
 		return
 	}
 	conn := CreateConnection(wsConn)
-	go conn.readPump(nil)
-	go conn.writePump()
+	go conn.readPump(nil, nil)
+	go conn.writePump(nil)
 	time.Sleep(1 * time.Second)
 	conn.Write([]byte("hihi"))
 	time.Sleep(1 * time.Second)

@@ -12,6 +12,7 @@ import (
 
 	"golang.org/x/crypto/sha3"
 
+	//	"github.com/daominah/livestream/connections"
 	l "github.com/daominah/livestream/language"
 	"github.com/daominah/livestream/zdatabase"
 )
@@ -27,8 +28,15 @@ const (
 	MT_ONLINE_DURATION    = "MT_ONLINE_DURATION"
 	MT_BROADCAST_DURATION = "MT_BROADCAST_DURATION"
 
+	// cheer types
+	CHEER_FOR_USER = "CHEER_FOR_USER"
+	CHEER_FOR_TEAM = "CHEER_FOR_TEAM"
+
 	// money log reasons
-	REASON_ADMIN_CHANGE = "REASON_ADMIN_CHANGE"
+	REASON_ADMIN_CHANGE     = "REASON_ADMIN_CHANGE"
+	REASON_TRANSFER         = "REASON_TRANSFER"
+	REASON_CHEER            = "REASON_CHEER"
+	REASON_CHEER_TEAM_SPLIT = "REASON_CHEER_TEAM_SPLIT"
 
 	STATUS_OFFLINE      = "STATUS_OFFLINE"
 	STATUS_ONLINE       = "STATUS_ONLINE"
@@ -73,6 +81,7 @@ type User struct {
 	Misc        string
 	CreatedTime time.Time
 
+	TeamId int64
 	// map moneyType to value, this map is only for caching;
 	// if u want change user money, use func changeUserMoney
 	MapMoney map[string]float64
@@ -113,6 +122,7 @@ func (u *User) ToShortMap() map[string]interface{} {
 		"Id":           u.Id,
 		"ProfileName":  u.ProfileName,
 		"ProfileImage": u.ProfileImage,
+		"TeamId":       u.TeamId,
 		"StatusL1":     u.StatusL1,
 		"StatusL2":     u.StatusL2,
 	}
@@ -190,7 +200,6 @@ func LoadUser(id int64) (*User, error) {
 	var address, profile_name, profile_image, summary, misc string
 	var is_suspended bool
 	var created_time time.Time
-
 	row := zdatabase.DbPool.QueryRow(
 		`SELECT username, role, real_name, national_id, phone, email, country, 
 		    address, profile_name, profile_image, summary, misc, 
@@ -209,7 +218,7 @@ func LoadUser(id int64) (*User, error) {
 		Address: address, ProfileName: profile_name, ProfileImage: profile_image,
 		Summary: summary, Misc: misc,
 		IsSuspended: is_suspended, CreatedTime: created_time}
-
+	//
 	user.MapMoney = make(map[string]float64)
 	for _, moneyType := range MONEY_TYPES {
 		var val float64
@@ -230,6 +239,11 @@ func LoadUser(id int64) (*User, error) {
 		user.MapMoney[moneyType] = val
 		user.Mutex.Unlock()
 	}
+	//
+	row = zdatabase.DbPool.QueryRow(
+		`SELECT team_id FROM team_member WHERE user_id = $1`, id)
+	row.Scan(&user.TeamId)
+	// calculated field
 	user.Level = int(user.MapMoney[MT_ONLINE_DURATION])
 	user.LevelVip = 15
 
@@ -323,7 +337,6 @@ func LoginByPassword(username string, password string) (
 		cookie, id)
 
 	u, e := LoadUser(id)
-	u.StatusL1 = STATUS_ONLINE
 	return u, cookie, e
 }
 
@@ -340,9 +353,47 @@ func LoginByCookie(login_session string) (*User, error) {
 		return nil, errors.New(l.Get(l.M002InvalidLogin))
 	} else {
 		u, e := LoadUser(id)
-		u.StatusL1 = STATUS_ONLINE
 		return u, e
 	}
+}
+
+//
+func RecordLogin(
+	userId int64, networkAddress, deviceName string, appName string) (
+	int64, error) {
+	row := zdatabase.DbPool.QueryRow(
+		`INSERT INTO user_login
+    		(user_id, network_address, device_name, app_name)
+		VALUES ($1, $2, $3, $4) RETURNING id`,
+		userId, networkAddress, deviceName, appName)
+	var id int64
+	e := row.Scan(&id)
+	if e != nil {
+		return 0, e
+	}
+	return id, nil
+}
+
+// change online duration
+func RecordLogout(loginId int64) error {
+	row := zdatabase.DbPool.QueryRow(
+		`SELECT user_id, login_time FROM user_login WHERE id = $1`, loginId)
+	var user_id int64
+	var login_time time.Time
+	e := row.Scan(&user_id, &login_time)
+	if e != nil {
+		return e
+	}
+	now := time.Now()
+	_, e = ChangeUserMoney(
+		user_id, MT_ONLINE_DURATION, now.Sub(login_time).Seconds(), "", false)
+	if e != nil {
+		return e
+	}
+	_, e = zdatabase.DbPool.Exec(
+		`UPDATE user_login SET logout_time = $1 WHERE id = $2`,
+		now, loginId)
+	return e
 }
 
 //

@@ -6,8 +6,9 @@ import (
 	"io/ioutil"
 	"strings"
 
-	"github.com/daominah/livestream/zconfig"
 	_ "github.com/lib/pq"
+
+	"github.com/daominah/livestream/zconfig"
 )
 
 var DbPool *sql.DB

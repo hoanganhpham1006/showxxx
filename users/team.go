@@ -1,11 +1,13 @@
 package users
 
 import (
-	//	"fmt"
+	"fmt"
 	//	"encoding/json"
 	"errors"
 	"sync"
 	"time"
+
+	"github.com/lib/pq"
 
 	l "github.com/daominah/livestream/language"
 	"github.com/daominah/livestream/zdatabase"
@@ -136,7 +138,17 @@ func AddTeamMember(teamId int64, userId int64) error {
 		teamId, userId,
 	)
 	if err != nil {
-		return err
+		pqErr, isOk := err.(*pq.Error)
+		if !isOk {
+			return err
+		}
+		if pqErr.Code.Name() == "unique_violation" {
+			_ = fmt.Print
+			// fmt.Printf("oe %v\n%v\n%v\n", pqErr.Code.Name(), pqErr.Detail, pqErr.Constraint)
+			return errors.New(l.Get(l.M015MemberMultipleTeam))
+		} else {
+			return err
+		}
 	}
 	//
 	team, err := GetTeam(teamId)
@@ -181,7 +193,7 @@ func SetTeamCaptain(teamId int64, userId int64) error {
 		teamId, userId,
 	)
 	if e != nil {
-		return e
+		return errors.New(l.Get(l.M016TeamMultipleCaptain))
 	}
 	nRowsAffected, _ := r.RowsAffected()
 	if nRowsAffected == 0 {
@@ -224,7 +236,7 @@ func RemoveRequestJoinTeam(teamId int64, userId int64) error {
 
 func LoadTeamJoiningRequests(teamId int64) ([]map[string]interface{}, error) {
 	rows, err := zdatabase.DbPool.Query(
-		`SELECT (user_id, created_time)
+		`SELECT user_id, created_time
         FROM team_joining_request
         WHERE team_id = $1`,
 		teamId)

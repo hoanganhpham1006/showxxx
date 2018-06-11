@@ -7,6 +7,8 @@ import (
 	"sync"
 	"testing"
 	"time"
+
+	l "github.com/daominah/livestream/language"
 )
 
 func Test01(t *testing.T) {
@@ -62,14 +64,14 @@ func Test03(t *testing.T) {
 	for i := 0; i < nChanges; i++ {
 		waitGroup.Add(1)
 		go func() {
-			e = ChangeUserMoney(user.Id, moneyType, 1, REASON_ADMIN_CHANGE)
+			_, e = ChangeUserMoney(user.Id, moneyType, 1, REASON_ADMIN_CHANGE, false)
 			waitGroup.Done()
 		}()
 	}
 	waitGroup.Wait()
 	ma1 := MapIdToUser[user.Id].MapMoney[moneyType]
 	user, _ = LoginByCookie(cookie)
-	fmt.Println(user.ToString())
+	// fmt.Println(user.ToString())
 	ma := user.MapMoney[moneyType]
 	if ma-mb != float64(nChanges) {
 		t.Error("ma-mb != nChanges")
@@ -159,5 +161,73 @@ func Test08(t *testing.T) {
 					(realityF2.Error() == expectationF2.Error()))) {
 			t.Error(i)
 		}
+	}
+}
+
+func Test09(t *testing.T) {
+	CreateTeam("We love MinAh", "image0", "summary0")
+	_, e0 := CreateTeam("We love MinAh", "image0", "summary0")
+	if e0 == nil || e0.Error() != l.Get(l.M012DuplicateTeamName) {
+		t.Error()
+	}
+	teamId := int64(1)
+	AddTeamMember(teamId, 1)
+	AddTeamMember(teamId, 2)
+	e1 := AddTeamMember(teamId, 1)
+	if e1 == nil || e1.Error() != l.Get(l.M015MemberMultipleTeam) {
+		t.Error()
+	}
+	SetTeamCaptain(teamId, 1)
+	e2 := SetTeamCaptain(teamId, 2)
+	if e2 == nil || e2.Error() != l.Get(l.M016TeamMultipleCaptain) {
+		t.Error()
+	}
+	RequestJoinTeam(teamId, 1)
+	e3 := RequestJoinTeam(teamId, 1)
+	if e3 == nil || e3.Error() != l.Get(l.M014DuplicateTeamJoiningRequest) {
+		t.Error()
+	}
+	e4 := RemoveRequestJoinTeam(teamId, 1)
+	if e4 != nil {
+		t.Error()
+	}
+	RequestJoinTeam(teamId, 1)
+	rs, e5 := LoadTeamJoiningRequests(teamId)
+	// fmt.Println(rs)
+	if e5 != nil || len(rs) == 0 {
+		t.Error(e5)
+	}
+}
+
+func Test10(t *testing.T) {
+	user, _ := GetUser(1)
+	// fmt.Println("user", user.ToString(), user.ToShortMap())
+	if user.TeamId == 0 {
+		t.Error()
+	}
+}
+
+func Test11(t *testing.T) {
+	u1, _ := GetUser(1)
+	u2, _ := GetUser(2)
+	ChangeUserMoney(u1.Id, MT_CASH, -u1.MapMoney[MT_CASH], REASON_ADMIN_CHANGE, true)
+	ChangeUserMoney(u2.Id, MT_CASH, -u2.MapMoney[MT_CASH], REASON_ADMIN_CHANGE, true)
+	ChangeUserMoney(u1.Id, MT_CASH, 300, REASON_ADMIN_CHANGE, true)
+	TransferMoney(u1.Id, u2.Id, MT_CASH, 100, REASON_TRANSFER, 0.05)
+	if !(u1.MapMoney[MT_CASH] == 200 && u2.MapMoney[MT_CASH] == 95) {
+		t.Error()
+	}
+}
+
+func Test12(t *testing.T) {
+	LoadUser(3)
+	loginId, e := RecordLogin(3, "1.2.3.4:12345", "deviceName", "appName")
+	if e != nil {
+		t.Error(e)
+	}
+	time.Sleep(100 * time.Millisecond)
+	e = RecordLogout(loginId)
+	if e != nil {
+		t.Error(e)
 	}
 }

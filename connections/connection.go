@@ -26,6 +26,8 @@ var upgrader = websocket.Upgrader{
 
 func init() {
 	_ = ioutil.ReadAll
+	//
+	MapConnection = make(map[int64]*Connection)
 }
 
 func tPrint(a ...interface{}) {
@@ -41,9 +43,11 @@ func tPrintf(format string, a ...interface{}) {
 }
 
 // ListenAndServe listens on a tcp port and upgrate connections to websocket,
-// already run in a goroutine
+// already run in a goroutine,
 func ListenAndServe(
-	serverCommandHandler func(connection *Connection, message []byte)) {
+	doAfterReceivingMessage func(connection *Connection, message []byte),
+	doAfterClosingConnection func(connection *Connection),
+) {
 	go func() {
 		fmt.Printf("Listening http message on address host%v/ws\n",
 			zconfig.WebsocketPort)
@@ -68,8 +72,8 @@ func ListenAndServe(
 			return
 		}
 		c := CreateConnection(ws)
-		go c.readPump(serverCommandHandler)
-		go c.writePump()
+		go c.readPump(doAfterReceivingMessage, doAfterClosingConnection)
+		go c.writePump(doAfterClosingConnection)
 		tPrint("Connection created: ", c.WsConn.RemoteAddr(), c)
 	})
 }
@@ -86,15 +90,20 @@ type Connection struct {
 	WsConn *websocket.Conn
 	// authenticated connection has UserId != 0
 	UserId int64
+	// for user's login history
+	LoginId int64
 	// library gorilla/websocket only allows
 	// that no more than one goroutine calls the write method
 	ChanWrite chan []byte
 	ChanClose chan bool
 }
 
-// messageHandler is what to do after receive message from peer,
-// messageHandler == nil: just print message
-func (c *Connection) readPump(messageHandler func(*Connection, []byte)) {
+// doAfterClosingConnection: change MapConnection, update user online record;
+// doAfterReceivingMessage: execute and respond to peer's command
+func (c *Connection) readPump(
+	doAfterReceivingMessage func(*Connection, []byte),
+	doAfterClosingConnection func(*Connection),
+) {
 	defer tPrint("Connection readPump ended", c.WsConn.RemoteAddr(), c)
 	c.WsConn.SetReadLimit(zconfig.WebsocketMaxMessageSize)
 	c.WsConn.SetReadDeadline(time.Now().Add(zconfig.WebsocketReadWait))
@@ -108,21 +117,22 @@ func (c *Connection) readPump(messageHandler func(*Connection, []byte)) {
 		if err != nil {
 			tPrint("WsConn.ReadMessage err", err)
 			c.WsConn.Close()
+			if doAfterClosingConnection != nil {
+				doAfterClosingConnection(c)
+			}
 			return
 		} else {
 			tPrintf("Connection readPump message %v %v:\n%v\n",
 				time.Now(), c.WsConn.RemoteAddr(), string(message))
 		}
-		if messageHandler != nil {
-			go messageHandler(c, message)
+		if doAfterReceivingMessage != nil {
+			go doAfterReceivingMessage(c, message)
 		}
 	}
 }
 
-// ensuring no more than one goroutine calls the write method for the connection,
-// so you send message to connection.ChanWrite
-//   instead of directly call connection.WsConn.WriteMessage
-func (c *Connection) writePump() {
+// doAfterClosingConnection: change MapConnection, update  user online record
+func (c *Connection) writePump(doAfterClosingConnection func(*Connection)) {
 	defer tPrint("Connection writePump ended", c)
 	ticker := time.NewTicker(zconfig.WebsocketPingPeriod)
 	defer func() { ticker.Stop() }()
@@ -145,10 +155,19 @@ func (c *Connection) writePump() {
 		}
 		if writeErr != nil {
 			c.WsConn.Close()
+			if doAfterClosingConnection != nil {
+				doAfterClosingConnection(c)
+			}
 			tPrint("WsConn.WriteMessage err", writeErr)
 			return
 		}
 	}
+}
+
+//
+func (c *Connection) TestingStart() {
+	go c.readPump(nil, nil)
+	go c.writePump(nil)
 }
 
 // send close control message

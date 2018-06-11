@@ -12,12 +12,12 @@ import (
 )
 
 var ExVar1 map[string]int64
-var ExVar2 float64
+var CheerTax float64
 
 func init() {
 	// default values
 	ExVar1Default := map[string]int64{"a": 1, "b": 2}
-	ExVar2Default := float64(1.5)
+	CheerTaxDefault := float64(0.05)
 	// loop update values
 	go func() {
 		time.Sleep(5 * time.Second) // waiting for init record.dbPool
@@ -35,13 +35,13 @@ func init() {
 				zdatabase.SaveGlobalVar(key, string(temp))
 			}
 			//
-			key = "ExVar2"
+			key = "CheerTax"
 			value = zdatabase.LoadGlobalVar(key)
-			ExVar2, err = strconv.ParseFloat(value, 64)
+			CheerTax, err = strconv.ParseFloat(value, 64)
 			if err != nil {
 				fmt.Println("zglobal err", key, err)
-				ExVar2 = ExVar2Default
-				temp := fmt.Sprintf("%v", ExVar2Default)
+				CheerTax = CheerTaxDefault
+				temp := fmt.Sprintf("%v", CheerTaxDefault)
 				zdatabase.SaveGlobalVar(key, temp)
 			}
 			//

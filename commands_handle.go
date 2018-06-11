@@ -13,6 +13,19 @@ import (
 	"github.com/daominah/livestream/users"
 )
 
+func doAfterClosingConnection(c *connections.Connection) {
+	if c.UserId != 0 {
+		connections.GMutex.Lock()
+		delete(connections.MapConnection, c.UserId)
+		connections.GMutex.Unlock()
+	}
+	if c.LoginId != 0 {
+		temp := c.LoginId
+		c.LoginId = 0
+		users.RecordLogout(temp)
+	}
+}
+
 func UserCreate(username string, password string) (
 	map[string]interface{}, error) {
 	userId, e := users.CreateUser(username, password)
@@ -39,12 +52,16 @@ func saveLoggedInConnection(connection *connections.Connection, userObj *users.U
 	connections.GMutex.Unlock()
 }
 
-func UserLoginByPassword(connection *connections.Connection, username string, password string) (
+func UserLoginByPassword(connection *connections.Connection,
+	username string, password string, deviceName string, appName string) (
 	map[string]interface{}, error) {
 	userObj, loginSession, err := users.LoginByPassword(username, password)
 	if userObj == nil {
 		return nil, err
 	}
+	loginId, _ := users.RecordLogin(userObj.Id,
+		fmt.Sprintf("%v", connection.WsConn.RemoteAddr()), deviceName, appName)
+	connection.LoginId = loginId
 	res := map[string]interface{}{
 		"User":         userObj.ToMap(),
 		"LoginSession": loginSession,
@@ -53,12 +70,15 @@ func UserLoginByPassword(connection *connections.Connection, username string, pa
 	return res, err
 }
 
-func UserLoginByCookie(connection *connections.Connection, login_session string) (
+func UserLoginByCookie(connection *connections.Connection,
+	login_session string, deviceName string, appName string) (
 	map[string]interface{}, error) {
 	userObj, err := users.LoginByCookie(login_session)
 	if userObj == nil {
 		return nil, err
 	}
+	users.RecordLogin(userObj.Id,
+		fmt.Sprintf("%v", connection.WsConn.RemoteAddr()), deviceName, appName)
 	res := map[string]interface{}{"User": userObj.ToMap()}
 	saveLoggedInConnection(connection, userObj)
 	return res, err
@@ -215,8 +235,19 @@ func TeamLoadJoiningRequests(teamId int64) (
 	}
 	return map[string]interface{}{"JoiningRequest": rows}, nil
 }
-func TeamRemoveMember(teamId int64, userId int64) (
+func TeamRemoveMember(commanderId int64, teamId int64, userId int64) (
 	map[string]interface{}, error) {
+	team, e := users.GetTeam(teamId)
+	if team == nil {
+		return nil, e
+	}
+	var captainId int64
+	if team.Captain != nil {
+		captainId = team.Captain.Id
+	}
+	if commanderId != captainId && commanderId != userId {
+		return nil, errors.New(l.Get(l.M017TeamMemberPrivilege))
+	}
 	err := users.RemoveTeamMember(teamId, userId)
 	if err != nil {
 		return nil, err
@@ -230,6 +261,7 @@ func TeamRequestJoin(teamId int64, userId int64) (
 }
 func TeamHandleJoiningRequest(teamId int64, userId int64, isAccepted bool) (
 	map[string]interface{}, error) {
+	defer users.RemoveRequestJoinTeam(teamId, userId)
 	var err error
 	if isAccepted {
 		err = users.AddTeamMember(teamId, userId)
@@ -237,6 +269,5 @@ func TeamHandleJoiningRequest(teamId int64, userId int64, isAccepted bool) (
 			return nil, err
 		}
 	}
-	err = users.RemoveRequestJoinTeam(teamId, userId)
 	return nil, err
 }

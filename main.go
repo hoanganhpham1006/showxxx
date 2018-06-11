@@ -28,6 +28,6 @@ func main() {
 	runtime.SetBlockProfileRate(1)
 
 	zdatabase.InitTables()
-	connections.ListenAndServe(serverCommandHandler)
+	connections.ListenAndServe(doAfterReceivingMessage, doAfterClosingConnection)
 	select {}
 }
