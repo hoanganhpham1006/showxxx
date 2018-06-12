@@ -32,11 +32,19 @@ ALTER TABLE public."user" OWNER TO vic_user;
 CREATE INDEX userr_i01_username ON public."user" using btree (username);
 CREATE INDEX userr_i02_loginsession ON public."user" using btree (login_session);
 INSERT INTO public."user" (username, profile_name, role, hashed_password)
-    VALUES ('daominah', 'Dao Min Ah A', 'ROLE_ADMIN', '164f04b29f50874c9330ee60d23a6ff04279c8b21a79afb5721602c6b97e2ac24d7c2070eba5827cab5f3b503bfac26539ec479921c1abadeac4980fcbf3b8a6');
+    VALUES ('daominah', 'Dao Min Ah A1', 'ROLE_ADMIN', '164f04b29f50874c9330ee60d23a6ff04279c8b21a79afb5721602c6b97e2ac24d7c2070eba5827cab5f3b503bfac26539ec479921c1abadeac4980fcbf3b8a6');
 INSERT INTO public."user" (username, profile_name, role, hashed_password)
-    VALUES ('daominah2', 'Dao Min Ah B', 'ROLE_BROADCASTER', '164f04b29f50874c9330ee60d23a6ff04279c8b21a79afb5721602c6b97e2ac24d7c2070eba5827cab5f3b503bfac26539ec479921c1abadeac4980fcbf3b8a6');
+    VALUES ('daominah2', 'Dao Min Ah B2', 'ROLE_BROADCASTER', '164f04b29f50874c9330ee60d23a6ff04279c8b21a79afb5721602c6b97e2ac24d7c2070eba5827cab5f3b503bfac26539ec479921c1abadeac4980fcbf3b8a6');
 INSERT INTO public."user" (username, profile_name, role, hashed_password)
-    VALUES ('daominah3', 'Dao Min Ah U', 'ROLE_USER', '164f04b29f50874c9330ee60d23a6ff04279c8b21a79afb5721602c6b97e2ac24d7c2070eba5827cab5f3b503bfac26539ec479921c1abadeac4980fcbf3b8a6');
+    VALUES ('daominah3', 'Dao Min Ah U3', 'ROLE_USER', '164f04b29f50874c9330ee60d23a6ff04279c8b21a79afb5721602c6b97e2ac24d7c2070eba5827cab5f3b503bfac26539ec479921c1abadeac4980fcbf3b8a6');
+INSERT INTO public."user" (username, profile_name, role, hashed_password)
+    VALUES ('daominah4', 'Dao Min Ah B4', 'ROLE_BROADCASTER', '164f04b29f50874c9330ee60d23a6ff04279c8b21a79afb5721602c6b97e2ac24d7c2070eba5827cab5f3b503bfac26539ec479921c1abadeac4980fcbf3b8a6');
+INSERT INTO public."user" (username, profile_name, role, hashed_password)
+    VALUES ('daominah5', 'Dao Min Ah U5', 'ROLE_USER', '164f04b29f50874c9330ee60d23a6ff04279c8b21a79afb5721602c6b97e2ac24d7c2070eba5827cab5f3b503bfac26539ec479921c1abadeac4980fcbf3b8a6');
+INSERT INTO public."user" (username, profile_name, role, hashed_password)
+    VALUES ('daominah6', 'Dao Min Ah U6', 'ROLE_USER', '164f04b29f50874c9330ee60d23a6ff04279c8b21a79afb5721602c6b97e2ac24d7c2070eba5827cab5f3b503bfac26539ec479921c1abadeac4980fcbf3b8a6');
+INSERT INTO public."user" (username, profile_name, role, hashed_password)
+    VALUES ('daominah7', 'Dao Min Ah U7', 'ROLE_USER', '164f04b29f50874c9330ee60d23a6ff04279c8b21a79afb5721602c6b97e2ac24d7c2070eba5827cab5f3b503bfac26539ec479921c1abadeac4980fcbf3b8a6');
 
 
 
@@ -152,6 +160,7 @@ CREATE TABLE public.conversation_message (
     conversation_id BIGINT DEFAULT 0 REFERENCES conversation (id),
     sender_id BIGINT DEFAULT 0 REFERENCES public."user" (id),
     message_content TEXT DEFAULT '',
+    display_type TEXT DEFAULT 'DISPLAY_TYPE_NORMAL',
     created_time TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 ALTER TABLE public.conversation_message OWNER TO vic_user;
@@ -168,6 +177,26 @@ CREATE TABLE public.conversation_message_recipient (
     seen_time TIMESTAMP WITH TIME ZONE DEFAULT '9999-01-01T00:00:00+07:00'
 );
 ALTER TABLE public.conversation_message_recipient OWNER TO vic_user;
+
+
+
+
+
+
+--
+CREATE TABLE public.conversation_cheer (
+    id BIGSERIAL, CONSTRAINT cheer_pkey PRIMARY KEY (id),
+    conversation_id BIGINT DEFAULT 0 REFERENCES public.conversation (id),
+    cheerer_id BIGINT DEFAULT 0 REFERENCES public."user" (id),
+    target_user_id BIGINT DEFAULT 0 REFERENCES public."user" (id),
+    cheer_type TEXT DEFAULT '',  -- CHEER_FOR_USER, CHEER_FOR_TEAM
+    created_time TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    val DOUBLE PRECISION DEFAULT 0,
+    cheer_message TEXT DEFAULT '',
+    misc TEXT DEFAULT ''
+);
+CREATE INDEX cheer_i01 ON public.cheer USING btree (cheerer_id, created_time);
+CREATE INDEX cheer_i02 ON public.cheer USING btree (target_user_id, created_time);
 
 
 
@@ -204,19 +233,3 @@ CREATE TABLE public.team_joining_request (
     CONSTRAINT team_joining_request_pkey PRIMARY KEY (team_id, user_id),
     created_time TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
-
-
-
---
-CREATE TABLE public.cheer (
-    id BIGSERIAL, CONSTRAINT cheer_pkey PRIMARY KEY (id),
-    cheerer_id BIGINT DEFAULT 0 REFERENCES public."user" (id),
-    target_user_id BIGINT DEFAULT 0 REFERENCES public."user" (id),
-    cheer_type TEXT DEFAULT '',  -- CHEER_FOR_USER, CHEER_FOR_TEAM
-    created_time TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-    val DOUBLE PRECISION DEFAULT 0,
-    cheer_message TEXT DEFAULT '',
-    misc TEXT DEFAULT ''
-);
-CREATE INDEX cheer_i01 ON public.cheer USING btree (cheerer_id, created_time);
-CREATE INDEX cheer_i02 ON public.cheer USING btree (target_user_id, created_time);

@@ -107,22 +107,24 @@ func LoadConversationPairId(uid1 int64, uid2 int64) int64 {
 // read data from database to MapMessages
 func LoadMessage(mid int64) (*Message, error) {
 	row := zdatabase.DbPool.QueryRow(
-		`SELECT conversation_id, sender_id,message_content,created_time 
+		`SELECT conversation_id, sender_id, message_content,
+    		created_time, display_type
         FROM conversation_message
         WHERE message_id = $1`,
 		mid,
 	)
 	var conversation_id, sender_id int64
-	var message_content string
+	var message_content, display_type string
 	var created_time time.Time
-	e := row.Scan(&conversation_id, &sender_id, &message_content, &created_time)
+	e := row.Scan(&conversation_id, &sender_id, &message_content,
+		&created_time, &display_type)
 	if e != nil {
 		return nil, errors.New("LoadMessage:" + e.Error())
 	}
 	msg := &Message{
 		MessageId: mid, ConversationId: conversation_id, SenderId: sender_id,
 		MessageContent: message_content, CreatedTime: created_time,
-		Recipients: make(map[int64]*Recipient),
+		DisplayType: display_type, Recipients: make(map[int64]*Recipient),
 	}
 	rows3, e := zdatabase.DbPool.Query(
 		`SELECT recipient_id, has_seen, seen_time

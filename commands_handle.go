@@ -11,6 +11,7 @@ import (
 	"github.com/daominah/livestream/conversations"
 	l "github.com/daominah/livestream/language"
 	"github.com/daominah/livestream/users"
+	"github.com/daominah/livestream/zglobal"
 )
 
 func doAfterClosingConnection(c *connections.Connection) {
@@ -148,7 +149,21 @@ func ConversationDetail(userId int64, conversationId int64) (
 func ConversationCreateMessage(
 	conversationId int64, senderId int64, messageContent string) (
 	map[string]interface{}, error) {
-	err := conversations.CreateMessage(conversationId, senderId, messageContent)
+	err := conversations.CreateMessage(
+		conversationId, senderId, messageContent, conversations.DISPLAY_TYPE_NORMAL)
+	return nil, err
+}
+
+func ConversationCreateBigMessage(
+	conversationId int64, senderId int64, messageContent string) (
+	map[string]interface{}, error) {
+	_, err := users.ChangeUserMoney(senderId, users.MT_CASH, zglobal.MessageBigCost,
+		users.REASON_CHAT_BIG, true)
+	if err != nil {
+		return nil, err
+	}
+	err = conversations.CreateMessage(
+		conversationId, senderId, messageContent, conversations.DISPLAY_TYPE_BIG)
 	return nil, err
 }
 func ConversationAddMember(
@@ -200,6 +215,14 @@ func ConversationMarkMessage(userId int64, messageId int64, hasSeen bool) (
 	map[string]interface{}, error) {
 	e := conversations.UserMarkMessage(userId, messageId, hasSeen)
 	return nil, e
+}
+
+func Cheer(conversation_id int64, cheerer_id int64, target_user_id int64,
+	cheer_type string, val float64, cheer_message string, misc string) (
+	map[string]interface{}, error) {
+	err := conversations.Cheer(conversation_id, cheerer_id, target_user_id,
+		cheer_type, val, cheer_message, misc)
+	return nil, err
 }
 
 func TeamCreate(

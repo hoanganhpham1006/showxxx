@@ -28,6 +28,13 @@ const (
 	N_MESSAGE_DEFAULT      = 3
 	N_CONVERSATION_DEFAULT = 3
 
+	DISPLAY_TYPE_NORMAL = "DISPLAY_TYPE_NORMAL"
+	DISPLAY_TYPE_BIG    = "DISPLAY_TYPE_BIG"
+	DISPLAY_TYPE_CHEER  = "DISPLAY_TYPE_CHEER"
+
+	CHEER_FOR_USER = "CHEER_FOR_USER"
+	CHEER_FOR_TEAM = "CHEER_FOR_TEAM"
+
 	COMMAND_NEW_MESSAGE  = "NewMessage"
 	COMMAND_SEEN_MESSAGE = "SeenMessage"
 )
@@ -71,6 +78,7 @@ type Message struct {
 	ConversationId int64
 	SenderId       int64
 	MessageContent string
+	DisplayType    string
 	CreatedTime    time.Time
 	Recipients     map[int64]*Recipient
 	Mutex          sync.Mutex
@@ -306,7 +314,8 @@ func MuteMember(conversationId int64, memberId int64, isMute bool) error {
 
 // member send a message to a conversation
 func CreateMessage(
-	conversationId int64, senderId int64, messageContent string) error {
+	conversationId int64, senderId int64, messageContent string,
+	displayType string) error {
 	conversation, e := GetConversation(conversationId)
 	if e != nil {
 		return e
@@ -323,9 +332,9 @@ func CreateMessage(
 	//
 	row := zdatabase.DbPool.QueryRow(
 		`INSERT INTO conversation_message
-	        (conversation_id, sender_id, message_content)
-	    VALUES ($1, $2, $3) RETURNING message_id`,
-		conversationId, senderId, messageContent)
+	        (conversation_id, sender_id, message_content, display_type)
+	    VALUES ($1, $2, $3, $4) RETURNING message_id`,
+		conversationId, senderId, messageContent, displayType)
 	var mid int64
 	e = row.Scan(&mid)
 	if e != nil {
@@ -347,14 +356,18 @@ func CreateMessage(
 		VALUES %v`, queryPart),
 		args...)
 	if e != nil {
-		return errors.New("CreateMessage Insert recipient" + e.Error())
+		return errors.New("CreateMessage Insert recipient " + e.Error())
 	}
 	//
-	msg, _ := LoadMessage(mid)
+	msg, e := LoadMessage(mid)
+	if e != nil {
+		return errors.New("CreateMessage LoadMessage " + e.Error())
+	}
 	conversation.Mutex.Lock()
 	conversation.Messages = append(conversation.Messages, msg)
 	conversation.Mutex.Unlock()
 	//
+	conversation.Mutex.Lock()
 	for _, member := range conversation.Members {
 		if !member.IsMute {
 			connections.WriteMapToUserId(member.UserId, nil,
@@ -364,6 +377,7 @@ func CreateMessage(
 				})
 		}
 	}
+	conversation.Mutex.Unlock()
 	return nil
 }
 

@@ -61,6 +61,11 @@ func CreateTeam(teamName string, teamImage string, teamSummary string) (
 	var id int64
 	e := row.Scan(&id)
 	if e != nil {
+		//		pqErr, isOk := e.(*pq.Error)
+		//		if !isOk {
+		//			return 0, e
+		//		}
+		//		fmt.Println(pqErr.Detail)
 		return 0, errors.New(l.Get(l.M012DuplicateTeamName))
 	}
 
@@ -74,7 +79,7 @@ func LoadTeam(teamId int64) (*Team, error) {
 	var team_name, team_image, summary string
 	var created_time time.Time
 	row := zdatabase.DbPool.QueryRow(
-		`SELECT (team_name, team_image, summary, created_time)
+		`SELECT team_name, team_image, summary, created_time
 		FROM team
 		WHERE team_id = $1`,
 		teamId)
@@ -86,7 +91,7 @@ func LoadTeam(teamId int64) (*Team, error) {
 		Summary: summary, CreatedTime: created_time,
 		Members: make(map[int64]*User)}
 	rows, e := zdatabase.DbPool.Query(
-		`SELECT (user_id, is_captain, joined_time) 
+		`SELECT user_id, is_captain, joined_time
 		FROM team_member
 		WHERE team_id = $1`,
 		teamId)
@@ -116,7 +121,7 @@ func LoadTeam(teamId int64) (*Team, error) {
 	GMutex.Lock()
 	MapIdToTeam[teamId] = team
 	GMutex.Unlock()
-	return nil, nil
+	return team, nil
 }
 
 // try to read data in ram,
@@ -130,6 +135,17 @@ func GetTeam(teamId int64) (*Team, error) {
 	} else {
 		return LoadTeam(teamId)
 	}
+}
+
+func LoadTeamIdByName(teamName string) (int64, error) {
+	var teamId int64
+	row := zdatabase.DbPool.QueryRow(
+		`SELECT team_id FROM team WHERE team_name = $1`, teamName)
+	e := row.Scan(&teamId)
+	if e != nil {
+		return 0, e
+	}
+	return teamId, nil
 }
 
 func AddTeamMember(teamId int64, userId int64) error {
@@ -153,15 +169,16 @@ func AddTeamMember(teamId int64, userId int64) error {
 	//
 	team, err := GetTeam(teamId)
 	if err != nil {
-		return err
+		return errors.New("AddTeamMember GetTeam " + err.Error())
 	}
 	user, err := GetUser(userId)
 	if err != nil {
-		return err
+		return errors.New("AddTeamMember GetUser " + err.Error())
 	}
 	team.Mutex.Lock()
 	team.Members[userId] = user
 	team.Mutex.Unlock()
+	user.TeamId = team.TeamId
 	return nil
 }
 

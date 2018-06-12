@@ -149,8 +149,8 @@ func Test08(t *testing.T) {
 		Err         error
 	}
 	for i, c := range []Case{
-		Case{1, "Dao Min Ah A", nil},
-		Case{2, "Dao Min Ah B", nil},
+		Case{1, "Dao Min Ah A1", nil},
+		Case{2, "Dao Min Ah B2", nil},
 		Case{-1, "", errors.New("sql: no rows in result set")},
 	} {
 		realityF1, realityF2 := c.ProfileName, c.Err
@@ -170,26 +170,28 @@ func Test09(t *testing.T) {
 	if e0 == nil || e0.Error() != l.Get(l.M012DuplicateTeamName) {
 		t.Error()
 	}
-	teamId := int64(1)
+	teamId, _ := LoadTeamIdByName("We love MinAh")
 	AddTeamMember(teamId, 1)
 	AddTeamMember(teamId, 2)
+	AddTeamMember(teamId, 3)
+	AddTeamMember(teamId, 4)
 	e1 := AddTeamMember(teamId, 1)
 	if e1 == nil || e1.Error() != l.Get(l.M015MemberMultipleTeam) {
-		t.Error()
+		t.Error(e1)
 	}
 	SetTeamCaptain(teamId, 1)
 	e2 := SetTeamCaptain(teamId, 2)
 	if e2 == nil || e2.Error() != l.Get(l.M016TeamMultipleCaptain) {
-		t.Error()
+		t.Error(e2)
 	}
 	RequestJoinTeam(teamId, 1)
 	e3 := RequestJoinTeam(teamId, 1)
 	if e3 == nil || e3.Error() != l.Get(l.M014DuplicateTeamJoiningRequest) {
-		t.Error()
+		t.Error(e3)
 	}
 	e4 := RemoveRequestJoinTeam(teamId, 1)
 	if e4 != nil {
-		t.Error()
+		t.Error(e4)
 	}
 	RequestJoinTeam(teamId, 1)
 	rs, e5 := LoadTeamJoiningRequests(teamId)
@@ -204,6 +206,10 @@ func Test10(t *testing.T) {
 	// fmt.Println("user", user.ToString(), user.ToShortMap())
 	if user.TeamId == 0 {
 		t.Error()
+	}
+	team, e := GetTeam(user.TeamId)
+	if e != nil {
+		t.Error(team, e)
 	}
 }
 

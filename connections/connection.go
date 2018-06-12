@@ -181,13 +181,13 @@ func (c *Connection) Close() {
 
 // run a goroutine to send the message to peer
 func (c *Connection) Write(message []byte) {
-	go func() {
+	go func(c *Connection) {
 		timeout := time.After(1 * time.Second)
 		select {
 		case c.ChanWrite <- message:
 		case <-timeout:
 		}
-	}()
+	}(c)
 }
 
 // WriteMap jsonDump (data+err),
@@ -204,13 +204,7 @@ func (c *Connection) WriteMap(err error, data map[string]interface{}) {
 		data["Error"] = err.Error()
 	}
 	message, _ := json.Marshal(data)
-	go func() {
-		timeout := time.After(1 * time.Second)
-		select {
-		case c.ChanWrite <- message:
-		case <-timeout:
-		}
-	}()
+	c.Write(message)
 }
 
 // WriteMapToUserId jsonDump (data+err),
@@ -224,4 +218,22 @@ func WriteMapToUserId(userId int64, err error, data map[string]interface{}) {
 	if conn != nil {
 		conn.WriteMap(err, data)
 	}
+}
+
+func WriteMapToAll(err error, data map[string]interface{}) {
+	if data == nil {
+		data = make(map[string]interface{})
+	}
+	if err == nil {
+		data["Error"] = ""
+	} else {
+		data["Error"] = err.Error()
+	}
+	message, _ := json.Marshal(data)
+	//
+	GMutex.Lock()
+	for _, conn := range MapConnection {
+		conn.Write(message)
+	}
+	GMutex.Unlock()
 }

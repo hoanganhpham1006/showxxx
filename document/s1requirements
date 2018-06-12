@@ -28,6 +28,8 @@ Conversation
     Two users can only have one pair conversation between them (and they cant leave the conversation)
     AddUser/RemoveMember from group conversation
     View info: id, name, type (pair/group), members, messages
+    There are message display types: DISPLAY_TYPE_NORMAL, DISPLAY_TYPE_BIG, DISPLAY_TYPE_CHEER
+    Global message
 
 Team
     View info: creater, members, profit ratio

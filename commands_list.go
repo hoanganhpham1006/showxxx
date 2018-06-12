@@ -87,6 +87,11 @@ func doAfterReceivingMessage(connection *connections.Connection, message []byte)
 				m.ReadInt64(data, "ConversationId"),
 				connection.UserId,
 				m.ReadString(data, "MessageContent"))
+		case "ConversationCreateBigMessage":
+			d, e = ConversationCreateBigMessage(
+				m.ReadInt64(data, "ConversationId"),
+				connection.UserId,
+				m.ReadString(data, "MessageContent"))
 		case "ConversationAddMember":
 			d, e = ConversationAddMember(
 				connection.UserId,
@@ -112,6 +117,17 @@ func doAfterReceivingMessage(connection *connections.Connection, message []byte)
 				connection.UserId,
 				m.ReadInt64(data, "MessageId"),
 				m.ReadBool(data, "HasSeen"))
+
+		case "Cheer":
+			d, e = Cheer(
+				m.ReadInt64(data, "ConversationId"),
+				connection.UserId,
+				m.ReadInt64(data, "TargetUserId"),
+				m.ReadString(data, "CheerType"), // CHEER_FOR_TEAM, CHEER_FOR_USER
+				m.ReadFloat64(data, "Value"),
+				m.ReadString(data, "CheerMessage"),
+				m.ReadString(data, "Misc"), // json, ex: {"Description": "9x Mangoes"}
+			)
 
 		case "TeamCreate":
 			d, e = TeamCreate(

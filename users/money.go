@@ -187,6 +187,10 @@ func transferMoney(
 		row := stmt.QueryRow(userId, moneyType)
 		err = row.Scan(&val)
 		if err != nil {
+			if err.Error() == "sql: no rows in result set" {
+				tx.Rollback()
+				return -1, -1, nil, errors.New(l.Get(l.M019MoneyTypeNotExist))
+			}
 			tx.Rollback()
 			return -1, -1, err, nil
 		}
@@ -323,11 +327,4 @@ func TransferMoney(
 	}
 	//
 	return moneyAfterSender, moneyAfterTarget, resultError
-}
-
-// cheerType: CHEER_FOR_USER, CHEER_FOR_TEAM,
-// misc: json {"Description": "9x Mangoes"}
-func Cheer(cheererId int64, targetId int64, cheerValue float64, cheerType string,
-	cheerMessage string, misc string) error {
-	return nil
 }
