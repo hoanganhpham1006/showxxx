@@ -245,7 +245,7 @@ CREATE INDEX conversation_cheer_i03 ON public.conversation_cheer USING btree
 --
 CREATE TABLE public.rank (
     rank_id BIGSERIAL, CONSTRAINT rank_pkey PRIMARY KEY (rank_id),
-    rank_name TEXT DEFAULT '',
+    rank_name TEXT DEFAULT '' UNIQUE,
     started_time TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 INSERT INTO public.rank (rank_name) VALUES ('Test1');
