@@ -126,6 +126,45 @@ CREATE INDEX user_login_i01 ON public.user_login USING btree
 
 
 
+
+
+--
+CREATE TABLE public.team (
+    team_id BIGSERIAL, CONSTRAINT team_pkey PRIMARY KEY (team_id),
+    team_name TEXT DEFAULT '' UNIQUE,
+    team_image TEXT DEFAULT '',
+    summary TEXT DEFAULT '',
+    created_time TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+
+
+--
+CREATE TABLE public.team_member (
+    team_id BIGINT DEFAULT 0 REFERENCES public.team (team_id),
+    user_id BIGINT DEFAULT 0 REFERENCES public."user" (id),
+    CONSTRAINT team_member_pkey PRIMARY KEY (team_id, user_id),
+    is_captain BOOL DEFAULT FALSE,
+    joined_time TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+CREATE UNIQUE INDEX team_member_i01 ON public.team_member USING btree
+    (team_id, is_captain) WHERE is_captain = TRUE;
+CREATE UNIQUE INDEX team_member_i02 ON public.team_member USING btree
+    (user_id);
+    
+    
+    
+--
+CREATE TABLE public.team_joining_request (
+    team_id BIGINT DEFAULT 0 REFERENCES public.team (team_id),
+    user_id BIGINT DEFAULT 0 REFERENCES public."user" (id),
+    CONSTRAINT team_joining_request_pkey PRIMARY KEY (team_id, user_id),
+    created_time TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+
+
+
 --
 CREATE TABLE public.conversation (
     id BIGSERIAL, CONSTRAINT conversation_pkey PRIMARY KEY (id),
@@ -180,9 +219,6 @@ ALTER TABLE public.conversation_message_recipient OWNER TO vic_user;
 
 
 
-
-
-
 --
 CREATE TABLE public.conversation_cheer (
     id BIGSERIAL, CONSTRAINT cheer_pkey PRIMARY KEY (id),
@@ -190,46 +226,64 @@ CREATE TABLE public.conversation_cheer (
     cheerer_id BIGINT DEFAULT 0 REFERENCES public."user" (id),
     target_user_id BIGINT DEFAULT 0 REFERENCES public."user" (id),
     cheer_type TEXT DEFAULT '',  -- CHEER_FOR_USER, CHEER_FOR_TEAM
-    created_time TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    team_id BIGINT DEFAULT 0 REFERENCES public.team (team_id),
     val DOUBLE PRECISION DEFAULT 0,
     cheer_message TEXT DEFAULT '',
+    created_time TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
     misc TEXT DEFAULT ''
 );
-CREATE INDEX cheer_i01 ON public.cheer USING btree (cheerer_id, created_time);
-CREATE INDEX cheer_i02 ON public.cheer USING btree (target_user_id, created_time);
+CREATE INDEX conversation_cheer_i01 ON public.conversation_cheer USING btree
+    (cheerer_id, created_time);
+CREATE INDEX conversation_cheer_i02 ON public.conversation_cheer USING btree
+    (target_user_id, created_time);
+CREATE INDEX conversation_cheer_i03 ON public.conversation_cheer USING btree
+    (team_id, created_time);
+
 
 
 
 --
-CREATE TABLE public.team (
-    team_id BIGSERIAL, CONSTRAINT team_pkey PRIMARY KEY (team_id),
-    team_name TEXT DEFAULT '' UNIQUE,
-    team_image TEXT DEFAULT '',
-    summary TEXT DEFAULT '',
-    created_time TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+CREATE TABLE public.rank (
+    rank_id BIGSERIAL, CONSTRAINT rank_pkey PRIMARY KEY (rank_id),
+    rank_name TEXT DEFAULT '',
+    started_time TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
+INSERT INTO public.rank (rank_name) VALUES ('Test1');
+INSERT INTO public.rank (rank_name) VALUES ('Test2');
+INSERT INTO public.rank (rank_name) VALUES ('Received cash this day');
+INSERT INTO public.rank (rank_name) VALUES ('Received cash this week');
+INSERT INTO public.rank (rank_name) VALUES ('Received cash this month');
+INSERT INTO public.rank (rank_name) VALUES ('Received cash all time');
+INSERT INTO public.rank (rank_name) VALUES ('Sent cash this day');
+INSERT INTO public.rank (rank_name) VALUES ('Sent cash this week');
+INSERT INTO public.rank (rank_name) VALUES ('Sent cash this month');
+INSERT INTO public.rank (rank_name) VALUES ('Sent cash all time');
+INSERT INTO public.rank (rank_name) VALUES ('Purchased cash this day');
+INSERT INTO public.rank (rank_name) VALUES ('Purchased cash this week');
+INSERT INTO public.rank (rank_name) VALUES ('Purchased cash this month');
+INSERT INTO public.rank (rank_name) VALUES ('Purchased cash all time');
 
 
 
 --
-CREATE TABLE public.team_member (
-    team_id BIGINT DEFAULT 0 REFERENCES public.team (team_id),
-    user_id BIGINT DEFAULT 0 REFERENCES public."user" (id),
-    CONSTRAINT team_member_pkey PRIMARY KEY (team_id, user_id),
-    is_captain BOOL DEFAULT FALSE,
-    joined_time TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+CREATE TABLE public.rank_key (
+    rank_id BIGINT DEFAULT 0 REFERENCES public.rank (rank_id),
+    user_id BIGINT DEFAULT 0,
+    CONSTRAINT rank_key_pkey PRIMARY KEY (rank_id, user_id),
+    rkey DOUBLE PRECISION DEFAULT 0,
+    last_modified TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
-CREATE UNIQUE INDEX team_member_i01 ON public.team_member USING btree
-    (team_id, is_captain) WHERE is_captain = TRUE;
-CREATE UNIQUE INDEX team_member_i02 ON public.team_member USING btree
-    (user_id);
-    
-    
-    
+CREATE INDEX rank_key_i01 ON public.rank_key USING btree
+    (rank_id, rkey, last_modified, user_id);
+
+
 --
-CREATE TABLE public.team_joining_request (
-    team_id BIGINT DEFAULT 0 REFERENCES public.team (team_id),
-    user_id BIGINT DEFAULT 0 REFERENCES public."user" (id),
-    CONSTRAINT team_joining_request_pkey PRIMARY KEY (team_id, user_id),
-    created_time TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+CREATE TABLE public.rank_archive (
+    archive_id BIGSERIAL, CONSTRAINT rank_archive_pkey PRIMARY KEY (archive_id),
+    rank_id BIGINT DEFAULT 0,
+    rank_name TEXT DEFAULT '',
+    started_time TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    finished_time TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    top_10 TEXT DEFAULT '[]',
+    full_order TEXT DEFAULT '[]'
 );

@@ -22,18 +22,8 @@ func Cheer(conversation_id int64, cheerer_id int64, target_user_id int64,
 	if err != nil {
 		return err
 	}
-	_, _ = zdatabase.DbPool.Exec(
-		`INSERT INTO conversation_cheer
-    		(conversation_id, cheerer_id, target_user_id, cheer_type,
-    		val, cheer_message, misc)
-    	VALUES ($1, $2, $3, $4, $5, $6, $7)`,
-		conversation_id, cheerer_id, target_user_id, cheer_type,
-		val, cheer_message, misc)
-	cheerName, _ := users.GetProfilenameById(cheerer_id)
-	targetName, _ := users.GetProfilenameById(target_user_id)
-	cheer_info := fmt.Sprintf("%v cheer %v $%v:\n %v",
-		cheerName, targetName, val, cheer_message)
-	CreateMessage(conversation_id, cheerer_id, cheer_info, DISPLAY_TYPE_CHEER)
+	//
+	var team_id int64
 	valAfterTax := val * (1 - zglobal.CheerTax)
 	if cheer_type == CHEER_FOR_TEAM {
 		targetUser, _ := users.GetUser(target_user_id)
@@ -41,6 +31,7 @@ func Cheer(conversation_id int64, cheerer_id int64, target_user_id int64,
 			if targetUser.TeamId != 0 {
 				team, _ := users.GetTeam(targetUser.TeamId)
 				if team != nil {
+					team_id = targetUser.TeamId
 					team.Mutex.Lock()
 					moneyPerMember := valAfterTax * (1 - zglobal.CheerTeamMainProfit - zglobal.CheerTeamCaptainProfit) / float64(len(team.Members))
 					for uid, _ := range team.Members {
@@ -57,5 +48,19 @@ func Cheer(conversation_id int64, cheerer_id int64, target_user_id int64,
 			}
 		}
 	}
+	//
+	_, _ = zdatabase.DbPool.Exec(
+		`INSERT INTO conversation_cheer
+    		(conversation_id, cheerer_id, target_user_id, cheer_type,
+    		val, cheer_message, misc, team_id)
+    	VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`,
+		conversation_id, cheerer_id, target_user_id, cheer_type,
+		val, cheer_message, misc, team_id)
+	cheerName, _ := users.GetProfilenameById(cheerer_id)
+	targetName, _ := users.GetProfilenameById(target_user_id)
+	cheer_info := fmt.Sprintf("%v cheer %v $%v:\n %v",
+		cheerName, targetName, val, cheer_message)
+	//
+	CreateMessage(conversation_id, cheerer_id, cheer_info, DISPLAY_TYPE_CHEER)
 	return nil
 }

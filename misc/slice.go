@@ -1,6 +1,7 @@
 package misc
 
 import (
+	"errors"
 	"sort"
 )
 
@@ -50,4 +51,32 @@ func FindInt64InSlice(sub int64, list []int64) int {
 		}
 	}
 	return -1
+}
+
+// Return the index where to insert item x in list a, assuming a is sorted desc.
+// The return value i is such that:
+// all e in a[:i] have e >= x, and all e in a[i:] have e < x.
+// Optional args lo (default 0) and hi (default len(a)) bound the
+// slice of a to be searched.
+func bisectRight(a []float64, x float64, lo int, hi int) (int, error) {
+	if a == nil {
+		return 0, errors.New("a is nil")
+	}
+	if lo < 0 {
+		return 0, errors.New("lo must be non-negative")
+	}
+	for lo < hi {
+		mid := (lo + hi) / 2
+		if x > a[mid] {
+			hi = mid
+		} else {
+			lo = mid + 1
+		}
+	}
+	return lo, nil
+}
+
+// Return the index where to insert item x in list a, assuming a is sorted desc
+func BisectRight(a []float64, x float64) (int, error) {
+	return bisectRight(a, x, 0, len(a))
 }

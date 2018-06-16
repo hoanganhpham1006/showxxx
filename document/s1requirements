@@ -30,6 +30,8 @@ Conversation
     View info: id, name, type (pair/group), members, messages
     There are message display types: DISPLAY_TYPE_NORMAL, DISPLAY_TYPE_BIG, DISPLAY_TYPE_CHEER
     Global message
+    User cheer (gift will be split among creater's team)
+    User chat normal, big, global
 
 Team
     View info: creater, members, profit ratio
@@ -43,8 +45,12 @@ Cheer
     User cheers for broadcaster 
     User cheers for broadcaster in a team
 
-Video
+Stream
     View info: id, creater, startedTime, finishedTime, viewers, conversation
-    User cheer (gift will be split among creater's team)
-    User chat normal, big, global
+    Forwarders status: forwarder address, forwarder is alive, nRoom, nConnection
+    Create Stream: select an alive forwarder, make a room, 
+    Finish Stream: 
+    Watch Stream: 
+    
+    
 
