@@ -15,6 +15,7 @@ import (
 
 	//	"github.com/daominah/livestream/connections"
 	l "github.com/daominah/livestream/language"
+	"github.com/daominah/livestream/misc"
 	"github.com/daominah/livestream/zdatabase"
 )
 
@@ -67,15 +68,17 @@ func init() {
 }
 
 type User struct {
-	Id           int64
-	Username     string
-	Role         string
-	IsSuspended  bool
-	RealName     string
-	NationalId   string
-	Sex          string
-	Phone        string
-	Email        string
+	Id          int64
+	Username    string
+	Role        string
+	IsSuspended bool
+	RealName    string
+	NationalId  string
+	// SEX_MALE, SEX_FEMALE, SEX_UNDEFINED
+	Sex   string
+	Phone string
+	Email string
+	// ISO 3166-1 alpha-2: VN, US, GB,..
 	Country      string
 	Address      string
 	ProfileName  string
@@ -216,7 +219,7 @@ func LoadUser(id int64) (*User, error) {
 		&address, &profile_name, &profile_image, &summary, &misc,
 		&is_suspended, &created_time)
 	if e != nil {
-		return nil, e
+		return nil, errors.New(l.Get(l.M022InvalidUserId))
 	}
 	user := &User{Id: id, Username: username, Role: role, RealName: real_name,
 		NationalId: national_id, Sex: sex, Phone: phone, Email: email,
@@ -430,6 +433,89 @@ func ChangeUserRole(userId int64, newRole string) error {
 		GMutex.Unlock()
 	}
 	return e
+}
+
+func ChangeUserInfo(userId int64, RealName string, NationalId string, Sex string,
+	Country string, Address string, ProfileName string, ProfileImage string,
+	Summary string) error {
+	sexTypes := []string{SEX_MALE, SEX_FEMALE, SEX_UNDEFINED}
+	if Sex != "" && misc.FindStringInSlice(Sex, sexTypes) == -1 {
+		return errors.New(l.Get(l.M020InvalidSex))
+	}
+	_, isIn := countries[Country]
+	if Country != "" && !isIn {
+		return errors.New(l.Get(l.M021InvalidCountry))
+	}
+	//
+	columns := make([]string, 0)
+	args := make([]interface{}, 0)
+	holders := make([]int, 0)
+	counter := 1
+	if RealName != "" {
+		columns = append(columns, "real_name")
+		args = append(args, RealName)
+		holders = append(holders, counter)
+		counter += 1
+	}
+	if NationalId != "" {
+		columns = append(columns, "national_id")
+		args = append(args, NationalId)
+		holders = append(holders, counter)
+		counter += 1
+	}
+	if Sex != "" {
+		columns = append(columns, "sex")
+		args = append(args, Sex)
+		holders = append(holders, counter)
+		counter += 1
+	}
+	if Country != "" {
+		columns = append(columns, "country")
+		args = append(args, Country)
+		holders = append(holders, counter)
+		counter += 1
+	}
+	if Address != "" {
+		columns = append(columns, "address")
+		args = append(args, Address)
+		holders = append(holders, counter)
+		counter += 1
+	}
+	if ProfileName != "" {
+		columns = append(columns, "profile_name")
+		args = append(args, ProfileName)
+		holders = append(holders, counter)
+		counter += 1
+	}
+	if ProfileImage != "" {
+		columns = append(columns, "profile_image")
+		args = append(args, ProfileImage)
+		holders = append(holders, counter)
+		counter += 1
+	}
+	if Summary != "" {
+		columns = append(columns, "summary")
+		args = append(args, Summary)
+		holders = append(holders, counter)
+		counter += 1
+	}
+	queryParts := make([]string, 0)
+	for i := 0; i < len(columns); i++ {
+		queryParts = append(queryParts,
+			fmt.Sprintf("%v = $%v", columns[i], holders[i]))
+	}
+	queryPart := strings.Join(queryParts, ", ")
+	query := fmt.Sprintf(
+		`UPDATE "user" 
+		SET %v
+		WHERE id = %v`, queryPart, userId)
+	fmt.Println("ChangeUserInfo query", query)
+	_, err := zdatabase.DbPool.Exec(query, args...)
+	if err != nil {
+		return err
+	}
+	_, err = LoadUser(userId)
+	return err
 }
 
 func Follow(userId int64, targetId int64) error {

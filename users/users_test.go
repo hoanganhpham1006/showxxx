@@ -129,7 +129,7 @@ func Test07(t *testing.T) {
 	for i, c := range []Case{
 		Case{1, "daominah", nil},
 		Case{2, "daominah2", nil},
-		Case{-1, "", errors.New("sql: no rows in result set")},
+		Case{-1, "", errors.New(l.Get(l.M022InvalidUserId))},
 	} {
 		realityF1, realityF2 := c.Username, c.Err
 		expectationF1, expectationF2 := GetUsernameById(c.UserId)
@@ -152,7 +152,7 @@ func Test08(t *testing.T) {
 	for i, c := range []Case{
 		Case{1, "Dao Min Ah A1", nil},
 		Case{2, "Dao Min Ah B2", nil},
-		Case{-1, "", errors.New("sql: no rows in result set")},
+		Case{-1, "", errors.New(l.Get(l.M022InvalidUserId))},
 	} {
 		realityF1, realityF2 := c.ProfileName, c.Err
 		expectationF1, expectationF2 := GetProfilenameById(c.UserId)
@@ -252,4 +252,29 @@ func Test13(t *testing.T) {
 	}
 	_ = us
 	// fmt.Println("users", us)
+}
+
+func Test14(t *testing.T) {
+	e := ChangeUserInfo(11, "Đào Thị Lán", "", SEX_FEMALE, "VN", "Hưng Yên",
+		"", "lan.jpg", "smiley dream")
+	if e != nil {
+		t.Error(e)
+	}
+	e = ChangeUserInfo(-1, "haha", "", "", "", "", "", "", "")
+	if e == nil || e.Error() != l.Get(l.M022InvalidUserId) {
+		t.Error()
+	}
+	e = ChangeUserInfo(11, "haha", "", "", "VN1", "", "", "", "")
+	if e == nil || e.Error() != l.Get(l.M021InvalidCountry) {
+		t.Error()
+	}
+	e = ChangeUserInfo(11, "", "", "Nữ", "", "", "", "", "")
+	if e == nil || e.Error() != l.Get(l.M020InvalidSex) {
+		t.Error()
+	}
+	e = ChangeUserInfo(12, "Trịnh Thị Vân", "111222333", SEX_FEMALE, "VN",
+		"Bắc Ninh", "Vân thiếu máu", "van.png", "cute sexy")
+	if e != nil {
+		t.Error(e)
+	}
 }

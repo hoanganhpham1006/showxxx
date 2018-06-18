@@ -81,6 +81,18 @@ func doAfterReceivingMessage(connection *connections.Connection, message []byte)
 			d, e = UserSearch(
 				m.ReadString(data, "Key"),
 			)
+		case "UserChangeInfo":
+			d, e = UserChangeInfo(
+				connection.UserId,
+				m.ReadString(data, "RealName"),
+				m.ReadString(data, "NationalId"),
+				m.ReadString(data, "Sex"),
+				m.ReadString(data, "Country"),
+				m.ReadString(data, "Address"),
+				m.ReadString(data, "ProfileName"),
+				m.ReadString(data, "ProfileImage"),
+				m.ReadString(data, "Summary"),
+			)
 
 		case "ConversationAllSummaries":
 			d, e = ConversationAllSummaries(

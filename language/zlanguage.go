@@ -9,6 +9,9 @@ import (
 const (
 	M001DuplicateUsername = "M001DuplicateUsername"
 	M002InvalidLogin      = "M002InvalidLogin"
+	M020InvalidSex        = "M020InvalidSex"
+	M021InvalidCountry    = "M021InvalidCountry"
+	M022InvalidUserId     = "M022InvalidUserId"
 
 	M012DuplicateTeamName           = "M012DuplicateTeamName"
 	M013SetTeamCaptainOutsider      = "M013SetTeamCaptainOutsider"

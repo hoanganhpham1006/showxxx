@@ -130,6 +130,15 @@ func UserSearch(key string) (
 	rows, err := users.Search(key)
 	return map[string]interface{}{"Rows": rows}, err
 }
+func UserChangeInfo(userId int64, RealName string, NationalId string, Sex string,
+	Country string, Address string, ProfileName string, ProfileImage string,
+	Summary string) (
+	map[string]interface{}, error) {
+	e := users.ChangeUserInfo(
+		userId, RealName, NationalId, Sex, Country, Address, ProfileName,
+		ProfileImage, Summary)
+	return nil, e
+}
 func UserCheckFollowing(userId int64, targetId int64) (
 	map[string]interface{}, error) {
 	r := users.CheckIsFollowing(userId, targetId)

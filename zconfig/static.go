@@ -21,8 +21,8 @@ const (
 	// you rarely need to config below vars
 
 	WebsocketMaxMessageSize = int64(8192)
-	WebsocketWriteWait      = 10 * time.Second
-	WebsocketReadWait       = 10 * time.Second
+	WebsocketWriteWait      = 60 * time.Second
+	WebsocketReadWait       = 60 * time.Second
 	WebsocketPingPeriod     = WebsocketReadWait * 9 / 10
 
 	LANG_VIETNAMESE = "LANG_VIETNAMESE"
