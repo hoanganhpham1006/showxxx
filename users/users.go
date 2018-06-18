@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"strconv"
 	"strings"
 	"sync"
 	"time"
@@ -466,6 +467,20 @@ func Unfollow(userId int64, targetId int64) error {
 	return e
 }
 
+func CheckIsFollowing(userId int64, targetId int64) bool {
+	row := zdatabase.DbPool.QueryRow(
+		`SELECT created_time FROM user_following
+		WHERE user_id_1 = $1 AND user_id_2 = $2`,
+		userId, targetId)
+	var followingTime time.Time
+	e := row.Scan(&followingTime)
+	if e == nil {
+		return true
+	}
+	// sql: no rows in result set
+	return false
+}
+
 func GetUsernameById(userId int64) (string, error) {
 	u, e := GetUser(userId)
 	if e != nil {
@@ -480,4 +495,53 @@ func GetProfilenameById(userId int64) (string, error) {
 		return "", e
 	}
 	return u.ProfileName, nil
+}
+
+// simple search using sql LIKE 'key%',
+// TODO: implement full text search
+func Search(key string) ([]map[string]interface{}, error) {
+	uids := make([]int64, 0)
+	columns := []string{"profile_name", "username"}
+	nRowLimit := 10
+
+	result := make([]map[string]interface{}, 0)
+	//
+	keyInt64, e := strconv.ParseInt(key, 10, 64)
+	if e == nil {
+		row := zdatabase.DbPool.QueryRow(
+			`SELECT id FROM "user" WHERE id = $1`, keyInt64)
+		var uid int64
+		e := row.Scan(&uid)
+		if e != nil {
+			return nil, e
+		}
+		user, _ := GetUser(uid)
+		if user != nil {
+			result = append(result, user.ToShortMap())
+		}
+	}
+	//
+	for _, column := range columns {
+		rows, e := zdatabase.DbPool.Query(fmt.Sprintf(
+			`SELECT id FROM "user"
+	        WHERE %v LIKE $1
+	        LIMIT %v`, column, nRowLimit),
+			fmt.Sprintf("%v%%", key))
+		if e != nil {
+			return nil, e
+		}
+		defer rows.Close()
+		for rows.Next() {
+			var uid int64
+			rows.Scan(&uid)
+			uids = append(uids, uid)
+		}
+	}
+	for _, uid := range uids {
+		user, _ := GetUser(uid)
+		if user != nil {
+			result = append(result, user.ToShortMap())
+		}
+	}
+	return result, nil
 }

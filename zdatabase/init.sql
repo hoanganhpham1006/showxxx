@@ -22,31 +22,45 @@ CREATE TABLE public."user" (
     address TEXT DEFAULT '',
     profile_name TEXT DEFAULT '',
     profile_image TEXT DEFAULT '',
-    summary TEXT DEFAULT '',
-    hashed_password TEXT DEFAULT '',
-    login_session TEXT DEFAULT '',
-    misc TEXT DEFAULT '',
+    summary TEXT DEFAULT 'No information given',
+    hashed_password TEXT DEFAULT '164f04b29f50874c9330ee60d23a6ff04279c8b21a79afb5721602c6b97e2ac24d7c2070eba5827cab5f3b503bfac26539ec479921c1abadeac4980fcbf3b8a6',
+    login_session TEXT DEFAULT 'hohohaha',
+    misc TEXT DEFAULT '{}',
     created_time TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 ALTER TABLE public."user" OWNER TO vic_user;
 CREATE INDEX userr_i01_username ON public."user" using btree (username);
 CREATE INDEX userr_i02_loginsession ON public."user" using btree (login_session);
-INSERT INTO public."user" (username, profile_name, role, hashed_password)
-    VALUES ('daominah', 'Dao Min Ah A1', 'ROLE_ADMIN', '164f04b29f50874c9330ee60d23a6ff04279c8b21a79afb5721602c6b97e2ac24d7c2070eba5827cab5f3b503bfac26539ec479921c1abadeac4980fcbf3b8a6');
-INSERT INTO public."user" (username, profile_name, role, hashed_password)
-    VALUES ('daominah2', 'Dao Min Ah B2', 'ROLE_BROADCASTER', '164f04b29f50874c9330ee60d23a6ff04279c8b21a79afb5721602c6b97e2ac24d7c2070eba5827cab5f3b503bfac26539ec479921c1abadeac4980fcbf3b8a6');
-INSERT INTO public."user" (username, profile_name, role, hashed_password)
-    VALUES ('daominah3', 'Dao Min Ah U3', 'ROLE_USER', '164f04b29f50874c9330ee60d23a6ff04279c8b21a79afb5721602c6b97e2ac24d7c2070eba5827cab5f3b503bfac26539ec479921c1abadeac4980fcbf3b8a6');
-INSERT INTO public."user" (username, profile_name, role, hashed_password)
-    VALUES ('daominah4', 'Dao Min Ah B4', 'ROLE_BROADCASTER', '164f04b29f50874c9330ee60d23a6ff04279c8b21a79afb5721602c6b97e2ac24d7c2070eba5827cab5f3b503bfac26539ec479921c1abadeac4980fcbf3b8a6');
-INSERT INTO public."user" (username, profile_name, role, hashed_password)
-    VALUES ('daominah5', 'Dao Min Ah U5', 'ROLE_USER', '164f04b29f50874c9330ee60d23a6ff04279c8b21a79afb5721602c6b97e2ac24d7c2070eba5827cab5f3b503bfac26539ec479921c1abadeac4980fcbf3b8a6');
-INSERT INTO public."user" (username, profile_name, role, hashed_password)
-    VALUES ('daominah6', 'Dao Min Ah U6', 'ROLE_USER', '164f04b29f50874c9330ee60d23a6ff04279c8b21a79afb5721602c6b97e2ac24d7c2070eba5827cab5f3b503bfac26539ec479921c1abadeac4980fcbf3b8a6');
-INSERT INTO public."user" (username, profile_name, role, hashed_password)
-    VALUES ('daominah7', 'Dao Min Ah U7', 'ROLE_USER', '164f04b29f50874c9330ee60d23a6ff04279c8b21a79afb5721602c6b97e2ac24d7c2070eba5827cab5f3b503bfac26539ec479921c1abadeac4980fcbf3b8a6');
+CREATE INDEX userr_i03 ON public."user" using btree (profile_name);
+INSERT INTO public."user" (username, profile_name, role)
+    VALUES ('daominah', 'Dao Min Ah A1', 'ROLE_ADMIN');
+INSERT INTO public."user" (username, profile_name, role)
+    VALUES ('daominah2', 'Dao Min Ah B2', 'ROLE_BROADCASTER');
+INSERT INTO public."user" (username, profile_name, role)
+    VALUES ('daominah3', 'Dao Min Ah U3', 'ROLE_USER');
+INSERT INTO public."user" (username, profile_name, role)
+    VALUES ('daominah4', 'Dao Min Ah B4', 'ROLE_BROADCASTER');
+INSERT INTO public."user" (username, profile_name, role)
+    VALUES ('daominah5', 'Dao Min Ah U5', 'ROLE_USER');
+INSERT INTO public."user" (username, profile_name, role)
+    VALUES ('daominah6', 'Dao Min Ah U6', 'ROLE_USER');
+INSERT INTO public."user" (username, profile_name, role)
+    VALUES ('daominah7', 'Dao Min Ah U7', 'ROLE_USER');
+INSERT INTO public."user" (username, profile_name, role)
+    VALUES ('tungdt', 'Tung', 'ROLE_USER');
+INSERT INTO public."user" (username, profile_name, role)
+    VALUES ('tungdt2', 'Tùng', 'ROLE_USER');
+INSERT INTO public."user" (username, profile_name, role)
+    VALUES ('tungdt3', 'Đào Thanh Tùng', 'ROLE_USER');    
+INSERT INTO public."user" (username, profile_name, role)
+    VALUES ('landt', 'Lán', 'ROLE_USER');
+INSERT INTO public."user" (username, profile_name, role)
+    VALUES ('vantt', 'Vân', 'ROLE_USER');
+INSERT INTO public."user" (username, profile_name, role)
+    VALUES ('tungdt4', '9 test search', 'ROLE_USER');
 
-
+    
+    
 
 --
 CREATE TABLE public.user_money (
@@ -262,6 +276,8 @@ INSERT INTO public.rank (rank_name) VALUES ('Purchased cash this day');
 INSERT INTO public.rank (rank_name) VALUES ('Purchased cash this week');
 INSERT INTO public.rank (rank_name) VALUES ('Purchased cash this month');
 INSERT INTO public.rank (rank_name) VALUES ('Purchased cash all time');
+INSERT INTO public.rank (rank_name) VALUES ('Number of followers this week');
+INSERT INTO public.rank (rank_name) VALUES ('Number of followers all time');
 
 
 

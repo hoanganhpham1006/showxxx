@@ -67,11 +67,20 @@ func doAfterReceivingMessage(connection *connections.Connection, message []byte)
 			d, e = UserUnfollow(
 				connection.UserId,
 				m.ReadInt64(data, "TargetId"))
+		case "UserCheckFollowing":
+			d, e = UserCheckFollowing(
+				connection.UserId,
+				m.ReadInt64(data, "TargetId"),
+			)
 		case "UserViewMoneyLog":
 			d, e = UserViewMoneyLog(
 				connection.UserId,
 				m.ReadTime(data, "FromTime"),
 				m.ReadTime(data, "ToTime"))
+		case "UserSearch":
+			d, e = UserSearch(
+				m.ReadString(data, "Key"),
+			)
 
 		case "ConversationAllSummaries":
 			d, e = ConversationAllSummaries(

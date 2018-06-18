@@ -43,7 +43,7 @@ func Test02(t *testing.T) {
 	}
 }
 
-func Test03(t *testing.T) {
+func T1est03(t *testing.T) {
 	var e error
 	var user *User
 	var cookie string
@@ -111,12 +111,13 @@ func Test05(t *testing.T) {
 	if nFollowers3-nFollowers2 != -1 {
 		t.Error(nFollowers3-nFollowers2, " != -1")
 	}
-}
-
-func Test06(t *testing.T) {
 	Follow(1, 2)
-	Follow(3, 2)
-	// fmt.Println("GetFollowers(2)", GetFollowers(2))
+	if CheckIsFollowing(1, 2) != true {
+		t.Error()
+	}
+	if CheckIsFollowing(4, 2) {
+		t.Error()
+	}
 }
 
 func Test07(t *testing.T) {
@@ -236,4 +237,19 @@ func Test12(t *testing.T) {
 	if e != nil {
 		t.Error(e)
 	}
+}
+
+func Test13(t *testing.T) {
+	var us []map[string]interface{}
+	var e error
+	us, e = Search("Tùng")
+	if e != nil {
+		t.Error(e)
+	}
+	us, e = Search("9")
+	if e != nil {
+		t.Error(e)
+	}
+	_ = us
+	// fmt.Println("users", us)
 }

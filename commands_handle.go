@@ -22,7 +22,7 @@ func doAfterClosingConnection(c *connections.Connection) {
 	}
 	if c.LoginId != 0 {
 		temp := c.LoginId
-		c.LoginId = 0
+		c.LoginId = 0 // evade connection can be RecordLogout 2 times
 		users.RecordLogout(temp)
 	}
 }
@@ -124,6 +124,16 @@ func UserViewMoneyLog(userId int64, fromTime time.Time, toTime time.Time) (
 	rows, err := users.ViewMoneyLog(userId, fromTime, toTime)
 	res := map[string]interface{}{"Rows": rows}
 	return res, err
+}
+func UserSearch(key string) (
+	map[string]interface{}, error) {
+	rows, err := users.Search(key)
+	return map[string]interface{}{"Rows": rows}, err
+}
+func UserCheckFollowing(userId int64, targetId int64) (
+	map[string]interface{}, error) {
+	r := users.CheckIsFollowing(userId, targetId)
+	return map[string]interface{}{"IsFollowing": r}, nil
 }
 func ConversationAllSummaries(userId int64, filter string, nConversation int) (
 	map[string]interface{}, error) {
