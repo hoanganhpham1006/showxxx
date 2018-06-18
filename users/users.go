@@ -42,6 +42,10 @@ const (
 	STATUS_BROADCASTING = "STATUS_BROADCASTING"
 	STATUS_WATCHING     = "STATUS_WATCHING"
 	STATUS_PLAYING_GAME = "STATUS_PLAYING_GAME"
+
+	SEX_MALE      = "SEX_MALE"
+	SEX_FEMALE    = "SEX_FEMALE"
+	SEX_UNDEFINED = "SEX_UNDEFINED"
 )
 
 // mofify this list to add money types
@@ -69,6 +73,7 @@ type User struct {
 	IsSuspended  bool
 	RealName     string
 	NationalId   string
+	Sex          string
 	Phone        string
 	Email        string
 	Country      string
@@ -122,6 +127,7 @@ func (u *User) ToShortMap() map[string]interface{} {
 		"ProfileName":  u.ProfileName,
 		"ProfileImage": u.ProfileImage,
 		"TeamId":       u.TeamId,
+		"Sex":          u.Sex,
 		"StatusL1":     u.StatusL1,
 		"StatusL2":     u.StatusL2,
 	}
@@ -195,27 +201,27 @@ func CreateUser(username string, password string) (int64, error) {
 // load user data from database to MapIdToUser, this map is only for caching,
 // this func creates new moneyType from MONEY_TYPES if necessary
 func LoadUser(id int64) (*User, error) {
-	var username, role, real_name, national_id, phone, email, country string
+	var username, role, real_name, national_id, sex, phone, email, country string
 	var address, profile_name, profile_image, summary, misc string
 	var is_suspended bool
 	var created_time time.Time
 	row := zdatabase.DbPool.QueryRow(
-		`SELECT username, role, real_name, national_id, phone, email, country, 
+		`SELECT username, role, real_name, national_id, sex, phone, email, country, 
 		    address, profile_name, profile_image, summary, misc, 
 		    is_suspended, created_time
     	FROM "user"
     	WHERE id = $1 `, id)
 	e := row.Scan(
-		&username, &role, &real_name, &national_id, &phone, &email, &country,
+		&username, &role, &real_name, &national_id, &sex, &phone, &email, &country,
 		&address, &profile_name, &profile_image, &summary, &misc,
 		&is_suspended, &created_time)
 	if e != nil {
 		return nil, e
 	}
 	user := &User{Id: id, Username: username, Role: role, RealName: real_name,
-		NationalId: national_id, Phone: phone, Email: email, Country: country,
-		Address: address, ProfileName: profile_name, ProfileImage: profile_image,
-		Summary: summary, Misc: misc,
+		NationalId: national_id, Sex: sex, Phone: phone, Email: email,
+		Country: country, Address: address, ProfileName: profile_name,
+		ProfileImage: profile_image, Summary: summary, Misc: misc,
 		IsSuspended: is_suspended, CreatedTime: created_time}
 	//
 	user.MapMoney = make(map[string]float64)

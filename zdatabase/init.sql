@@ -16,6 +16,7 @@ CREATE TABLE public."user" (
     is_suspended BOOLEAN DEFAULT FALSE,
     real_name TEXT DEFAULT '',
     national_id TEXT DEFAULT '',
+    sex TEXT DEFAULT 'SEX_UNDEFINED',
     phone TEXT DEFAULT '',
     email TEXT DEFAULT '',
     country TEXT DEFAULT '',

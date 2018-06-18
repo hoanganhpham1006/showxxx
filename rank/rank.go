@@ -1,3 +1,5 @@
+// Package rank provides functionality for ranking players, measuring by a key
+//
 package rank
 
 import (
@@ -34,6 +36,9 @@ const (
 	RANK_PURCHASED_CASH_WEEK  = int64(12)
 	RANK_PURCHASED_CASH_MONTH = int64(13)
 	RANK_PURCHASED_CASH_ALL   = int64(14)
+
+	RANK_N_FOLLOWERS_WEEK = int64(15)
+	RANK_N_FOLLOWERS_ALL  = int64(16)
 )
 
 var MapRankIdToLeaderboard map[int64][]TopRow
@@ -41,7 +46,7 @@ var GMutex sync.Mutex
 
 func updateLeaderboards() {
 	for {
-		for i := int64(1); i <= 14; i++ {
+		for i := int64(1); i <= 16; i++ {
 			lb, _ := LoadLeaderboard(i)
 			GMutex.Lock()
 			MapRankIdToLeaderboard[i] = lb
