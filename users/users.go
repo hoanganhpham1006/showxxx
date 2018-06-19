@@ -509,7 +509,7 @@ func ChangeUserInfo(userId int64, RealName string, NationalId string, Sex string
 		`UPDATE "user" 
 		SET %v
 		WHERE id = %v`, queryPart, userId)
-	fmt.Println("ChangeUserInfo query", query)
+	//	fmt.Println("ChangeUserInfo query", query)
 	_, err := zdatabase.DbPool.Exec(query, args...)
 	if err != nil {
 		return err
@@ -592,10 +592,9 @@ func GetProfilenameById(userId int64) (string, error) {
 // simple search using sql LIKE 'key%',
 // TODO: implement full text search
 func Search(key string) ([]map[string]interface{}, error) {
-	uids := make([]int64, 0)
 	columns := []string{"profile_name", "username"}
 	nRowLimit := 10
-
+	duplicateIdChecker := make(map[int64]bool)
 	result := make([]map[string]interface{}, 0)
 	//
 	keyInt64, e := strconv.ParseInt(key, 10, 64)
@@ -610,9 +609,11 @@ func Search(key string) ([]map[string]interface{}, error) {
 		user, _ := GetUser(uid)
 		if user != nil {
 			result = append(result, user.ToShortMap())
+			duplicateIdChecker[uid] = true
 		}
 	}
 	//
+	uids := make([]int64, 0)
 	for _, column := range columns {
 		rows, e := zdatabase.DbPool.Query(fmt.Sprintf(
 			`SELECT id FROM "user"
@@ -626,7 +627,10 @@ func Search(key string) ([]map[string]interface{}, error) {
 		for rows.Next() {
 			var uid int64
 			rows.Scan(&uid)
-			uids = append(uids, uid)
+			if _, isIn := duplicateIdChecker[uid]; !isIn {
+				uids = append(uids, uid)
+				duplicateIdChecker[uid] = true
+			}
 		}
 	}
 	for _, uid := range uids {
