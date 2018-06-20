@@ -30,5 +30,7 @@ func init() {
 
 		M018NotEnoughMoney:    "Không đủ tiền",
 		M019MoneyTypeNotExist: "Loại tiền không tồn tại",
+
+		M023StaticServerDown: "Máy chủ lưu trữ không hoạt động",
 	}
 }

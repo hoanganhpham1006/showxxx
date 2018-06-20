@@ -14,7 +14,7 @@ func Test01(t *testing.T) {
 	// fmt.Println("oe")
 	client := &http.Client{}
 	requestUrl := fmt.Sprintf("http://localhost%v%v",
-		zconfig.StaticUploadPort, UPLOADING_PATH)
+		zconfig.StaticUploadPort, zconfig.StaticUploadPath)
 	//	fmt.Println("requestUrl", requestUrl)
 	reqBodyB, e := ioutil.ReadFile("./test.jpg")
 	if e != nil {
@@ -33,7 +33,7 @@ func Test01(t *testing.T) {
 		return
 	}
 	respBody, _ := ioutil.ReadAll(resp.Body)
-	_ = string(respBody)
+	fmt.Println("respBody ", string(respBody))
 	if resp.StatusCode != 200 {
 		t.Error()
 	}

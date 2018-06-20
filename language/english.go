@@ -30,5 +30,7 @@ func init() {
 
 		M018NotEnoughMoney:    "Not enough money",
 		M019MoneyTypeNotExist: "Money type does not exist",
+
+		M023StaticServerDown: "Static server is down",
 	}
 }

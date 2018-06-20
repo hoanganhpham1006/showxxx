@@ -139,6 +139,11 @@ func UserChangeInfo(userId int64, RealName string, NationalId string, Sex string
 		ProfileImage, Summary)
 	return nil, e
 }
+func UserChangeProfileImage(userId int64, newProfileImage []byte) (
+	map[string]interface{}, error) {
+	profileImagePath, e := users.ChangeUserProfileImage(userId, newProfileImage)
+	return map[string]interface{}{"ProfileImagePath": profileImagePath}, e
+}
 func UserCheckFollowing(userId int64, targetId int64) (
 	map[string]interface{}, error) {
 	r := users.CheckIsFollowing(userId, targetId)

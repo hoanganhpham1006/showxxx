@@ -1,11 +1,14 @@
 package users
 
 import (
+	"bytes"
 	"database/sql"
 	"encoding/hex"
 	"encoding/json"
 	"errors"
 	"fmt"
+	"io/ioutil"
+	"net/http"
 	"strconv"
 	"strings"
 	"sync"
@@ -16,6 +19,7 @@ import (
 	//	"github.com/daominah/livestream/connections"
 	l "github.com/daominah/livestream/language"
 	"github.com/daominah/livestream/misc"
+	"github.com/daominah/livestream/zconfig"
 	"github.com/daominah/livestream/zdatabase"
 )
 
@@ -516,6 +520,47 @@ func ChangeUserInfo(userId int64, RealName string, NationalId string, Sex string
 	}
 	_, err = LoadUser(userId)
 	return err
+}
+
+// return file path on static server
+func UploadFile(content []byte) (string, error) {
+	reqBodyB := content
+	client := &http.Client{}
+	requestUrl := fmt.Sprintf("http://%v%v%v",
+		zconfig.StaticHost, zconfig.StaticUploadPort, zconfig.StaticUploadPath)
+	//	fmt.Println("requestUrl", requestUrl)
+	reqBody := bytes.NewBufferString(string(reqBodyB))
+	req, e := http.NewRequest("POST", requestUrl, reqBody)
+	if e != nil {
+		return "", e
+	}
+	resp, e := client.Do(req)
+	if e != nil {
+		return "", e
+	}
+	respBody, e := ioutil.ReadAll(resp.Body)
+	defer resp.Body.Close()
+	if e != nil {
+		return "", e
+	}
+	// fmt.Println("respBody ", string(respBody))
+	if resp.StatusCode != 200 {
+		return "", errors.New(string(respBody))
+	}
+	return string(respBody), nil
+}
+
+func ChangeUserProfileImage(userId int64, newProfileImage []byte) (
+	string, error) {
+	imgPath, e := UploadFile(newProfileImage)
+	if e != nil {
+		return "", errors.New(l.Get(l.M023StaticServerDown))
+	}
+	e = ChangeUserInfo(userId, "", "", "", "", "", "", imgPath, "")
+	if e != nil {
+		return "", e
+	}
+	return imgPath, nil
 }
 
 func Follow(userId int64, targetId int64) error {

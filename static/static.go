@@ -14,22 +14,18 @@ import (
 	"github.com/daominah/livestream/zconfig"
 )
 
-const (
-	UPLOADING_PATH = "/hohohaha"
-)
-
 func main() {
 	go func() {
 		fmt.Printf("Listening http message on address host%v%v\n",
-			zconfig.StaticUploadPort, UPLOADING_PATH)
+			zconfig.StaticUploadPort, zconfig.StaticUploadPath)
 		err := http.ListenAndServe(zconfig.StaticUploadPort, nil)
 		if err != nil {
 			fmt.Printf("Fail to listen http message on address host%v%v\n %v\n",
-				zconfig.StaticUploadPort, UPLOADING_PATH, err.Error())
+				zconfig.StaticUploadPort, zconfig.StaticUploadPath, err.Error())
 		}
 	}()
 	//
-	http.HandleFunc(UPLOADING_PATH, func(w http.ResponseWriter, r *http.Request) {
+	http.HandleFunc(zconfig.StaticUploadPath, func(w http.ResponseWriter, r *http.Request) {
 		// fmt.Println(r)
 		if r.Method != "POST" {
 			http.Error(w, "Method not allowed", 405)
@@ -67,7 +63,7 @@ func main() {
 			http.Error(w, err.Error(), 500)
 			return
 		}
-		respBody := fmt.Sprintf(`{"FilePath":"/%v/%v"}`, folderName, fileName)
+		respBody := fmt.Sprintf(`/%v/%v`, folderName, fileName)
 		w.Write([]byte(respBody))
 		return
 	})

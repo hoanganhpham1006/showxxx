@@ -20,6 +20,7 @@ const (
 
 	StaticHost         = "127.0.0.1"
 	StaticUploadPort   = ":20891"
+	StaticUploadPath   = "/hohohaha"
 	StaticDownloadPort = "20892" // this port dont have ":" before the number
 	StaticFolder       = "/home/tungdt/go/src/github.com/daominah/livestream_static"
 

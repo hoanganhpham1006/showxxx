@@ -33,6 +33,8 @@ const (
 
 	M018NotEnoughMoney    = "M018NotEnoughMoney"
 	M019MoneyTypeNotExist = "M019MoneyTypeNotExist"
+
+	M023StaticServerDown = "M023StaticServerDown"
 )
 
 // map msgName to msgContent

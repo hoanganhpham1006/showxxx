@@ -30,5 +30,10 @@ func Test02(t *testing.T) {
 		"DeviceName": "LinuxMint18",
 		"AppName":    "Eclipse",
 	})
-	time.Sleep(2 * time.Second)
+	time.Sleep(100 * time.Millisecond)
+	c.WriteMap(nil, map[string]interface{}{
+		"Command":     "UserChangeProfileImage",
+		"ImageBase64": []byte("Profile picture 0"),
+	})
+	select {}
 }

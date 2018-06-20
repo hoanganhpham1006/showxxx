@@ -1,6 +1,7 @@
 package misc
 
 import (
+	"encoding/base64"
 	"time"
 )
 
@@ -36,4 +37,13 @@ func ReadTime(data map[string]interface{}, field string) time.Time {
 	vs, _ := vi.(string)
 	v, _ := time.Parse(time.RFC3339Nano, vs)
 	return v
+}
+
+// get value from map string base64 encoded field to []byte,
+// return []bytes{} if error occured
+func ReadBytes(data map[string]interface{}, field string) []byte {
+	vi := data[field]
+	vs, _ := vi.(string)
+	vbs, _ := base64.StdEncoding.DecodeString(vs)
+	return vbs
 }

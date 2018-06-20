@@ -93,6 +93,11 @@ func doAfterReceivingMessage(connection *connections.Connection, message []byte)
 				m.ReadString(data, "ProfileImage"),
 				m.ReadString(data, "Summary"),
 			)
+		case "UserChangeProfileImage":
+			d, e = UserChangeProfileImage(
+				connection.UserId,
+				m.ReadBytes(data, "ImageBase64"),
+			)
 
 		case "ConversationAllSummaries":
 			d, e = ConversationAllSummaries(
