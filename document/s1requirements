@@ -1,5 +1,4 @@
 Connection websocket
-    A connection needs to authenticate in 300s, if it doesnt: close.
     If a new connection authenticate by a userId the same as old connection: close the old connection.
 
 User
@@ -47,10 +46,8 @@ Cheer
 
 Stream
     View info: id, creater, startedTime, finishedTime, viewers, conversation
-    Forwarders status: forwarder address, forwarder is alive, nRoom, nConnection
-    Create Stream: select an alive forwarder, make a room, 
-    Finish Stream: 
-    Watch Stream: 
+    Finish a stream
+    Watch a stream 
     
     
 
