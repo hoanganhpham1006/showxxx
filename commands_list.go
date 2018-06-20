@@ -31,15 +31,20 @@ func doAfterReceivingMessage(connection *connections.Connection, message []byte)
 				m.ReadString(data, "Username"),
 				m.ReadString(data, "Password"))
 		case "UserLoginByPassword":
-			d, e = UserLoginByPassword(
+			d, e = UserLogin(
+				LOGIN_BY_PASSWORD,
 				connection,
 				m.ReadString(data, "Username"),
 				m.ReadString(data, "Password"),
+				"",
 				m.ReadString(data, "DeviceName"),
 				m.ReadString(data, "AppName"))
 		case "UserLoginByCookie":
-			d, e = UserLoginByCookie(
+			d, e = UserLogin(
+				LOGIN_BY_COOKIE,
 				connection,
+				"",
+				"",
 				m.ReadString(data, "LoginSession"),
 				m.ReadString(data, "DeviceName"),
 				m.ReadString(data, "AppName"))

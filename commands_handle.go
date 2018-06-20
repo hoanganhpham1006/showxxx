@@ -14,6 +14,11 @@ import (
 	"github.com/daominah/livestream/zglobal"
 )
 
+const (
+	LOGIN_BY_PASSWORD = "LOGIN_BY_PASSWORD"
+	LOGIN_BY_COOKIE   = "LOGIN_BY_COOKIE"
+)
+
 func doAfterClosingConnection(c *connections.Connection) {
 	if c.UserId != 0 {
 		connections.GMutex.Lock()
@@ -34,7 +39,32 @@ func UserCreate(username string, password string) (
 	return res, e
 }
 
-func saveLoggedInConnection(connection *connections.Connection, userObj *users.User) {
+func UserLogin(loginType string, connection *connections.Connection,
+	username string, password string, login_session string,
+	deviceName string, appName string) (
+	map[string]interface{}, error) {
+	var userObj *users.User
+	var loginSession string
+	var err error
+	if loginType == LOGIN_BY_PASSWORD {
+		userObj, loginSession, err = users.LoginByPassword(username, password)
+	} else if loginType == LOGIN_BY_COOKIE {
+		userObj, err = users.LoginByCookie(login_session)
+	} else {
+		return nil, errors.New(l.Get(l.M024InvalidLoginType))
+	}
+	if userObj == nil {
+		return nil, err
+	}
+	//
+	loginId, _ := users.RecordLogin(userObj.Id,
+		fmt.Sprintf("%v", connection.WsConn.RemoteAddr()), deviceName, appName)
+	connection.LoginId = loginId
+	res := map[string]interface{}{
+		"User":         userObj.ToMap(),
+		"LoginSession": loginSession,
+	}
+	//
 	connections.GMutex.Lock()
 	oldConn := connections.MapConnection[userObj.Id]
 	connections.GMutex.Unlock()
@@ -46,42 +76,10 @@ func saveLoggedInConnection(connection *connections.Connection, userObj *users.U
 		})
 		oldConn.Close()
 	}
-
 	connection.UserId = userObj.Id
 	connections.GMutex.Lock()
 	connections.MapConnection[userObj.Id] = connection
 	connections.GMutex.Unlock()
-}
-
-func UserLoginByPassword(connection *connections.Connection,
-	username string, password string, deviceName string, appName string) (
-	map[string]interface{}, error) {
-	userObj, loginSession, err := users.LoginByPassword(username, password)
-	if userObj == nil {
-		return nil, err
-	}
-	loginId, _ := users.RecordLogin(userObj.Id,
-		fmt.Sprintf("%v", connection.WsConn.RemoteAddr()), deviceName, appName)
-	connection.LoginId = loginId
-	res := map[string]interface{}{
-		"User":         userObj.ToMap(),
-		"LoginSession": loginSession,
-	}
-	saveLoggedInConnection(connection, userObj)
-	return res, err
-}
-
-func UserLoginByCookie(connection *connections.Connection,
-	login_session string, deviceName string, appName string) (
-	map[string]interface{}, error) {
-	userObj, err := users.LoginByCookie(login_session)
-	if userObj == nil {
-		return nil, err
-	}
-	users.RecordLogin(userObj.Id,
-		fmt.Sprintf("%v", connection.WsConn.RemoteAddr()), deviceName, appName)
-	res := map[string]interface{}{"User": userObj.ToMap()}
-	saveLoggedInConnection(connection, userObj)
 	return res, err
 }
 

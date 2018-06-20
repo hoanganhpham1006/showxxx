@@ -12,6 +12,7 @@ const (
 	M020InvalidSex        = "M020InvalidSex"
 	M021InvalidCountry    = "M021InvalidCountry"
 	M022InvalidUserId     = "M022InvalidUserId"
+	M024InvalidLoginType  = "M024InvalidLoginType"
 
 	M012DuplicateTeamName           = "M012DuplicateTeamName"
 	M013SetTeamCaptainOutsider      = "M013SetTeamCaptainOutsider"
