@@ -7,6 +7,7 @@ import (
 	"time"
 
 	l "github.com/daominah/livestream/language"
+	"github.com/daominah/livestream/rank"
 	"github.com/daominah/livestream/zdatabase"
 )
 
@@ -310,7 +311,7 @@ func TransferMoney(
 	} else {
 		resultError = logicError
 	}
-	// update cache
+	// update cache and rank
 	if databaseError == nil && logicError == nil {
 		GMutex.Lock()
 		if MapIdToUser[userId] != nil {
@@ -324,6 +325,21 @@ func TransferMoney(
 			MapIdToUser[targetId].Mutex.Unlock()
 		}
 		GMutex.Unlock()
+		//
+		for _, rankId := range []int64{
+			rank.RANK_SENT_CASH_DAY,
+			rank.RANK_SENT_CASH_WEEK,
+			rank.RANK_SENT_CASH_MONTH,
+			rank.RANK_SENT_CASH_ALL} {
+			rank.ChangeKey(rankId, userId, transferValue)
+		}
+		for _, rankId := range []int64{
+			rank.RANK_RECEIVED_CASH_DAY,
+			rank.RANK_RECEIVED_CASH_WEEK,
+			rank.RANK_RECEIVED_CASH_MONTH,
+			rank.RANK_RECEIVED_CASH_ALL} {
+			rank.ChangeKey(rankId, targetId, transferValue)
+		}
 	}
 	//
 	return moneyAfterSender, moneyAfterTarget, resultError

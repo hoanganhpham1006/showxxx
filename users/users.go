@@ -19,6 +19,7 @@ import (
 	//	"github.com/daominah/livestream/connections"
 	l "github.com/daominah/livestream/language"
 	"github.com/daominah/livestream/misc"
+	"github.com/daominah/livestream/rank"
 	"github.com/daominah/livestream/zconfig"
 	"github.com/daominah/livestream/zdatabase"
 )
@@ -568,7 +569,7 @@ func Follow(userId int64, targetId int64) error {
 		`INSERT INTO user_following (user_id_1, user_id_2)
 		VALUES ($1, $2)`,
 		userId, targetId)
-	// update cache
+	// update cache and rank
 	if e == nil {
 		GMutex.Lock()
 		if MapIdToUser[userId] != nil {
@@ -578,6 +579,13 @@ func Follow(userId int64, targetId int64) error {
 			MapIdToUser[targetId].NFollowers += 1
 		}
 		GMutex.Unlock()
+		//
+		for _, rankId := range []int64{
+			rank.RANK_N_FOLLOWERS_WEEK,
+			rank.RANK_N_FOLLOWERS_ALL,
+		} {
+			rank.ChangeKey(rankId, targetId, 1)
+		}
 	}
 	return e
 }
@@ -590,7 +598,7 @@ func Unfollow(userId int64, targetId int64) error {
 	// update cache
 	if e == nil {
 		nRowsAffected, _ := r.RowsAffected()
-		if nRowsAffected != 0 {
+		if nRowsAffected != 0 { // update cache and rank
 			GMutex.Lock()
 			if MapIdToUser[userId] != nil {
 				MapIdToUser[userId].NFollowing -= 1
@@ -599,6 +607,14 @@ func Unfollow(userId int64, targetId int64) error {
 				MapIdToUser[targetId].NFollowers -= 1
 			}
 			GMutex.Unlock()
+			//
+			for _, rankId := range []int64{
+				rank.RANK_N_FOLLOWERS_WEEK,
+				rank.RANK_N_FOLLOWERS_ALL,
+			} {
+				_ = rankId
+				rank.ChangeKey(rankId, targetId, -1)
+			}
 		}
 	}
 	return e

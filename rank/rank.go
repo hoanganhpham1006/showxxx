@@ -17,7 +17,7 @@ import (
 
 const (
 	LEADERBOARD_LIMIT         = int(500)
-	LEADERBOARD_UPDATE_PERIOD = 5 * time.Second
+	LEADERBOARD_UPDATE_PERIOD = 120 * time.Second
 
 	RANK_TEST1 = int64(1)
 	RANK_TEST2 = int64(2)
@@ -175,6 +175,7 @@ type TopRow struct {
 	RKey   float64
 }
 
+// always return non-nil rows.
 func LoadLeaderboard(rankId int64) ([]TopRow, error) {
 	result := make([]TopRow, 0)
 	rows, e := zdatabase.DbPool.Query(
@@ -199,14 +200,10 @@ func LoadLeaderboard(rankId int64) ([]TopRow, error) {
 	return result, nil
 }
 
-func GetLeaderboard(rankId int64) (map[string]interface{}, error) {
+func GetLeaderboard(rankId int64) []TopRow {
 	var leaderboard []TopRow
 	GMutex.Lock()
 	leaderboard = MapRankIdToLeaderboard[rankId]
 	GMutex.Unlock()
-	result := map[string]interface{}{
-		"RankId":      rankId,
-		"Leaderboard": leaderboard,
-	}
-	return result, nil
+	return leaderboard
 }

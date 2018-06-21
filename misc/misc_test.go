@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"testing"
+	"time"
 )
 
 func Test01(t *testing.T) {
@@ -86,5 +87,15 @@ func Test03(t *testing.T) {
 	}
 	if f4 != 0 {
 		t.Error()
+	}
+}
+
+func Test04(t *testing.T) {
+	//	fmt.Println("NextDay00 ", NextDay00())
+	//	fmt.Println("NextDay00 ", NextWeek00())
+	//	fmt.Println("NextDay00 ", NextMonth00())
+	for {
+		fmt.Println(time.Now())
+		time.Sleep(1 * time.Second)
 	}
 }

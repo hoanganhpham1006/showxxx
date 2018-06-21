@@ -10,6 +10,7 @@ import (
 	"github.com/daominah/livestream/connections"
 	"github.com/daominah/livestream/conversations"
 	l "github.com/daominah/livestream/language"
+	"github.com/daominah/livestream/rank"
 	"github.com/daominah/livestream/users"
 	"github.com/daominah/livestream/zglobal"
 )
@@ -146,6 +147,21 @@ func UserCheckFollowing(userId int64, targetId int64) (
 	map[string]interface{}, error) {
 	r := users.CheckIsFollowing(userId, targetId)
 	return map[string]interface{}{"IsFollowing": r}, nil
+}
+func RankGetLeaderBoard(rankId int64) (
+	map[string]interface{}, error) {
+	rows := rank.GetLeaderboard(rankId)
+	userRows := make([]map[string]interface{}, 0)
+	for _, row := range rows {
+		user, _ := users.GetUser(row.UserId)
+		if user == nil {
+			continue
+		}
+		userRow := user.ToShortMap()
+		userRow["RKey"] = row.RKey
+		userRows = append(userRows, userRow)
+	}
+	return map[string]interface{}{"RankId": rankId, "Rows": userRows}, nil
 }
 func ConversationAllSummaries(userId int64, filter string, nConversation int) (
 	map[string]interface{}, error) {
