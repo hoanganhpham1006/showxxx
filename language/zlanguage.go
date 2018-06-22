@@ -13,6 +13,7 @@ const (
 	M021InvalidCountry    = "M021InvalidCountry"
 	M022InvalidUserId     = "M022InvalidUserId"
 	M024InvalidLoginType  = "M024InvalidLoginType"
+	M025UserSuspended     = "M025UserSuspended"
 
 	M012DuplicateTeamName           = "M012DuplicateTeamName"
 	M013SetTeamCaptainOutsider      = "M013SetTeamCaptainOutsider"

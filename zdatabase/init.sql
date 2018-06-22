@@ -304,3 +304,19 @@ CREATE TABLE public.rank_archive (
     top_10 TEXT DEFAULT '[]',
     full_order TEXT DEFAULT '[]'
 );
+
+CREATE TABLE public.gift (
+    id BIGSERIAL, CONSTRAINT gift_pkey PRIMARY KEY (id),
+    name TEXT DEFAULT '' UNIQUE,
+    val DOUBLE PRECISION DEFAULT 0,
+    image TEXT DEFAULT '',
+    created_time TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+INSERT INTO public.gift (name, val) VALUES ('Candy', 10000);
+INSERT INTO public.gift (name, val) VALUES ('Banana', 20000);
+INSERT INTO public.gift (name, val) VALUES ('Tortoise', 30000);
+INSERT INTO public.gift (name, val) VALUES ('Four-leaf Clover', 50000);
+INSERT INTO public.gift (name, val) VALUES ('Firework', 100000);
+INSERT INTO public.gift (name, val) VALUES ('Champagne', 200000);
+INSERT INTO public.gift (name, val) VALUES ('Cigar', 500000);
+INSERT INTO public.gift (name, val) VALUES ('Sports car ', 1000000);

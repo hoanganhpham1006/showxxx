@@ -94,8 +94,8 @@ func Test04(t *testing.T) {
 	//	fmt.Println("NextDay00 ", NextDay00())
 	//	fmt.Println("NextDay00 ", NextWeek00())
 	//	fmt.Println("NextDay00 ", NextMonth00())
-	for {
-		fmt.Println(time.Now())
-		time.Sleep(1 * time.Second)
-	}
+	//	for {
+	//		fmt.Println(time.Now())
+	//		time.Sleep(1 * time.Second)
+	//	}
 }

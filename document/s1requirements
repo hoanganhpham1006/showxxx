@@ -18,6 +18,8 @@ User
         top: received cash, sent cash, purchased cash in the past day/week/month.
         calculated: level (base on online duration), vip level (base on purchased cash in month)
         multi value: followers, following, room conversation moderators, unique viewers, top cheerers
+    Normal user request to become broadcaster
+    
 
 Conversation
     User view list all/unread/pair conversations that he is in, sort by last message.
@@ -33,7 +35,7 @@ Conversation
     User chat normal, big, global
 
 Team
-    View info: creater, members, profit ratio
+    View info
     Broadcaster can only have one team
     Broadcaster create/requestJoin team
     Add/Remove a broadcaster from team
@@ -47,7 +49,10 @@ Cheer
 Stream
     View info: id, creater, startedTime, finishedTime, viewers, conversation
     Finish a stream
-    Watch a stream 
+    Watch a stream
+    Report a stream
+    Admin send message to stream
+
     
     
 

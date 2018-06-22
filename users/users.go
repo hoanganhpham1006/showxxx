@@ -348,9 +348,15 @@ func LoginByPassword(username string, password string) (
 	zdatabase.DbPool.Exec(
 		`UPDATE "user" SET login_session = $1 WHERE id = $2`,
 		cookie, id)
-
+	//
 	u, e := LoadUser(id)
-	return u, cookie, e
+	if u == nil {
+		return nil, "", e
+	}
+	if u.IsSuspended {
+		return nil, "", errors.New(l.Get(l.M025UserSuspended))
+	}
+	return u, cookie, nil
 }
 
 // return userObj, error
@@ -364,10 +370,17 @@ func LoginByCookie(login_session string) (*User, error) {
 	e := row.Scan(&id)
 	if e != nil {
 		return nil, errors.New(l.Get(l.M002InvalidLogin))
-	} else {
-		u, e := LoadUser(id)
-		return u, e
 	}
+	//
+	u, e := LoadUser(id)
+	if u == nil {
+		return nil, e
+	}
+	if u.IsSuspended {
+		return nil, errors.New(l.Get(l.M025UserSuspended))
+	}
+	return u, nil
+
 }
 
 //
