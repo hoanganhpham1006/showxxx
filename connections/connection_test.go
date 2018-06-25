@@ -12,6 +12,7 @@ import (
 
 func Test01(t *testing.T) {
 	serverAddr := fmt.Sprintf("ws://localhost%v/ws", zconfig.WebsocketPort)
+	serverAddr = fmt.Sprintf("ws://43.239.221.117%v/ws", zconfig.WebsocketPort)
 	wsConn, _, e := websocket.DefaultDialer.Dial(serverAddr, nil)
 	if e != nil {
 		t.Error(e)

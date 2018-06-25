@@ -37,6 +37,11 @@ const (
 	M019MoneyTypeNotExist = "M019MoneyTypeNotExist"
 
 	M023StaticServerDown = "M023StaticServerDown"
+
+	M026StreamCreatePrivilege = "M026StreamCreatePrivilege"
+	M027StreamBroadcasted     = "M027StreamBroadcasted"
+	M028StreamNotBroadcasting = "M028StreamNotBroadcasting"
+	M029StreamConcurrentView  = "M029StreamConcurrentView"
 )
 
 // map msgName to msgContent

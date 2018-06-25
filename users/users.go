@@ -73,8 +73,9 @@ func init() {
 }
 
 type User struct {
-	Id          int64
-	Username    string
+	Id       int64
+	Username string
+	// ROLE_ADMIN, ROLE_BROADCASTER, ROLE_USER
 	Role        string
 	IsSuspended bool
 	RealName    string
@@ -105,6 +106,7 @@ type User struct {
 	// base on purchased cash in month
 	LevelVip int
 
+	// StatusL1 will be assign in other packages
 	StatusL1 string
 	// json: {"Game": "GAME_TAIXIU"}, {"Video": 92}
 	StatusL2 string
@@ -230,7 +232,9 @@ func LoadUser(id int64) (*User, error) {
 		NationalId: national_id, Sex: sex, Phone: phone, Email: email,
 		Country: country, Address: address, ProfileName: profile_name,
 		ProfileImage: profile_image, Summary: summary, Misc: misc,
-		IsSuspended: is_suspended, CreatedTime: created_time}
+		IsSuspended: is_suspended, CreatedTime: created_time,
+		StatusL1: STATUS_OFFLINE, StatusL2: "{}",
+	}
 	//
 	user.MapMoney = make(map[string]float64)
 	for _, moneyType := range MONEY_TYPES {

@@ -51,7 +51,7 @@ func doAfterReceivingMessage(connection *connections.Connection, message []byte)
 
 		default:
 			d = map[string]interface{}{"message": string(message)}
-			e = errors.New(l.Get(l.M010CommandNotSupported))
+			e = errors.New("Not logged in." + l.Get(l.M010CommandNotSupported))
 		}
 	} else { // logged in
 		switch command {
@@ -198,9 +198,35 @@ func doAfterReceivingMessage(connection *connections.Connection, message []byte)
 				m.ReadBool(data, "IsAccepted"),
 			)
 
+		case "StreamCreate":
+			d, e = StreamCreate(
+				connection.UserId,
+			)
+		case "StreamFinish":
+			_ = 1
+		case "StreamView":
+			d, e = StreamView(
+				connection.UserId,
+				m.ReadInt64(data, "BroadcasterId"),
+			)
+		case "StreamStopViewing":
+			_ = 1
+		case "StreamForwardSignaling":
+			d, e = StreamForwardSignaling(
+				connection.UserId,
+				m.ReadInt64(data, "TargetUserId"),
+				data,
+			)
+		case "StreamAllSummaries":
+			_ = 1
+		case "StreamDetail":
+			_ = 1
+		case "StreamReport":
+			_ = 1
+
 		default:
 			d = map[string]interface{}{"message": string(message)}
-			e = errors.New(l.Get(l.M010CommandNotSupported))
+			e = errors.New("Logged in. " + l.Get(l.M010CommandNotSupported))
 		}
 	}
 	if d == nil {

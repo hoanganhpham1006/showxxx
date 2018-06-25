@@ -2,6 +2,7 @@
 package zconfig
 
 import (
+	"fmt"
 	"time"
 )
 
@@ -37,3 +38,9 @@ const (
 )
 
 var Language = LANG_ENGLISH
+var DefaultFutureTime, _ = time.Parse(time.RFC3339, "9999-01-01T00:00:00+07:00")
+
+func init() {
+	_ = fmt.Println
+	// fmt.Println("DefaultFutureTime", DefaultFutureTime)
+}

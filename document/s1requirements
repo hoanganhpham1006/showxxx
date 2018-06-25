@@ -48,8 +48,10 @@ Cheer
 
 Stream
     View info: id, creater, startedTime, finishedTime, viewers, conversation
+    Create a stream
     Finish a stream
-    Watch a stream
+    View a stream
+    Stop viewing a stream
     Report a stream
     Admin send message to stream
 

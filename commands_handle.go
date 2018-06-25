@@ -11,6 +11,7 @@ import (
 	"github.com/daominah/livestream/conversations"
 	l "github.com/daominah/livestream/language"
 	"github.com/daominah/livestream/rank"
+	"github.com/daominah/livestream/streams"
 	"github.com/daominah/livestream/users"
 	"github.com/daominah/livestream/zglobal"
 )
@@ -25,6 +26,11 @@ func doAfterClosingConnection(c *connections.Connection) {
 		connections.GMutex.Lock()
 		delete(connections.MapConnection, c.UserId)
 		connections.GMutex.Unlock()
+
+		user, _ := users.GetUser(c.UserId)
+		if user != nil {
+			user.StatusL1 = users.STATUS_OFFLINE
+		}
 	}
 	if c.LoginId != 0 {
 		temp := c.LoginId
@@ -57,6 +63,7 @@ func UserLogin(loginType string, connection *connections.Connection,
 	if userObj == nil {
 		return nil, err
 	}
+	userObj.StatusL1 = users.STATUS_ONLINE
 	//
 	loginId, _ := users.RecordLogin(userObj.Id,
 		fmt.Sprintf("%v", connection.WsConn.RemoteAddr()), deviceName, appName)
@@ -331,4 +338,31 @@ func TeamHandleJoiningRequest(teamId int64, userId int64, isAccepted bool) (
 		}
 	}
 	return nil, err
+}
+
+func StreamCreate(userId int64) (map[string]interface{}, error) {
+	stream, err := streams.CreateStream(userId)
+	if stream == nil {
+		return nil, err
+	}
+	return stream.ToMap(), nil
+}
+
+func StreamView(viewerId int64, broadcasterId int64) (
+	map[string]interface{}, error) {
+	stream, err := streams.ViewStream(viewerId, broadcasterId)
+	if stream == nil {
+		return nil, err
+	}
+	return stream.ToMap(), nil
+}
+
+func StreamForwardSignaling(
+	userId int64, targetUserId int64, data map[string]interface{}) (
+	map[string]interface{}, error) {
+	if data != nil {
+		data["Sender"] = userId
+	}
+	connections.WriteMapToUserId(targetUserId, nil, data)
+	return nil, nil
 }

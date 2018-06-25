@@ -34,5 +34,10 @@ func init() {
 		M019MoneyTypeNotExist: "Money type does not exist",
 
 		M023StaticServerDown: "Static server is down",
+
+		M026StreamCreatePrivilege: "Only broadcaster can broadcast",
+		M027StreamBroadcasted:     "You broadcasted",
+		M028StreamNotBroadcasting: "Broadcaster is not broadcasting",
+		M029StreamConcurrentView:  "You can only view one broadcaster at a time",
 	}
 }
