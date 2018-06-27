@@ -445,20 +445,24 @@ func SuspendUser(userId int64, isSuspended bool) error {
 func ChangeUserRole(userId int64, newRole string) error {
 	if misc.FindStringInSlice(
 		newRole, []string{ROLE_ADMIN, ROLE_BROADCASTER, ROLE_USER}) == -1 {
-		return errors.New(l.Get(l.M001DuplicateUsername))
+		return errors.New(l.Get(l.M030InvalidRole))
 	}
-	_, e := zdatabase.DbPool.Exec(
+	r, e := zdatabase.DbPool.Exec(
 		`UPDATE "user" SET role = $1 WHERE id = $2`,
 		newRole, userId)
 	// update cache
-	if e == nil {
-		GMutex.Lock()
-		if MapIdToUser[userId] != nil {
-			MapIdToUser[userId].Role = newRole
-		}
-		GMutex.Unlock()
+	if e != nil {
+		return e
 	}
-	return e
+	if nRowAff, _ := r.RowsAffected(); nRowAff == 0 {
+		return errors.New(l.Get(l.M022InvalidUserId))
+	}
+	GMutex.Lock()
+	if MapIdToUser[userId] != nil {
+		MapIdToUser[userId].Role = newRole
+	}
+	GMutex.Unlock()
+	return nil
 }
 
 func ChangeUserInfo(userId int64, RealName string, NationalId string, Sex string,

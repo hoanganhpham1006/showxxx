@@ -128,6 +128,10 @@ func ChangeUserMoney(
 	userId int64, moneyType string, change float64, reason string,
 	constraintPositiveMoney bool) (
 	float64, error) {
+	user, e := GetUser(userId)
+	if user == nil {
+		return -1, e
+	}
 	timeout := time.Now().Add(5 * time.Second)
 	var newVal float64
 	var databaseError, logicError error

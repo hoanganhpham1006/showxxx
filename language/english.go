@@ -4,14 +4,15 @@ var mapMessagesEnglish map[string]string
 
 func init() {
 	mapMessagesEnglish = map[string]string{
-		M001DuplicateUsername: "Duplicate username",
-		M002InvalidLogin:      "Username or password is invalid",
-		M020InvalidSex:        "Sex must be in [SEX_MALE, SEX_FEMALE, SEX_UNDEFINED]",
-		M021InvalidCountry:    "Country must be ISO 3166-1 alpha-2: VN, US, GB,.. ",
-		M022InvalidUserId:     "Invalid user id",
-		M024InvalidLoginType:  "Invalid login type",
-		M025UserSuspended:     "Your account has been suspended",
-		M030InvalidRole:       "Invalid user's role",
+		M001DuplicateUsername:     "Duplicate username",
+		M002InvalidLogin:          "Invalid login",
+		M020InvalidSex:            "Sex must be in [SEX_MALE, SEX_FEMALE, SEX_UNDEFINED]",
+		M021InvalidCountry:        "Country must be ISO 3166-1 alpha-2: VN, US, GB,.. ",
+		M022InvalidUserId:         "Invalid user id",
+		M024InvalidLoginType:      "Invalid login type",
+		M025UserSuspended:         "Your account has been suspended",
+		M030InvalidRole:           "Invalid user's role",
+		M031OperationNotPermitted: "Operation not permitted",
 
 		M012DuplicateTeamName:           "Duplicate team name",
 		M013SetTeamCaptainOutsider:      "Can only set team's member as captain",

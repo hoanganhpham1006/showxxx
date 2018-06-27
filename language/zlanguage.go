@@ -7,14 +7,15 @@ import (
 )
 
 const (
-	M001DuplicateUsername = "M001DuplicateUsername"
-	M002InvalidLogin      = "M002InvalidLogin"
-	M020InvalidSex        = "M020InvalidSex"
-	M021InvalidCountry    = "M021InvalidCountry"
-	M022InvalidUserId     = "M022InvalidUserId"
-	M024InvalidLoginType  = "M024InvalidLoginType"
-	M025UserSuspended     = "M025UserSuspended"
-	M030InvalidRole       = "M030InvalidRole"
+	M001DuplicateUsername     = "M001DuplicateUsername"
+	M002InvalidLogin          = "M002InvalidLogin"
+	M020InvalidSex            = "M020InvalidSex"
+	M021InvalidCountry        = "M021InvalidCountry"
+	M022InvalidUserId         = "M022InvalidUserId"
+	M024InvalidLoginType      = "M024InvalidLoginType"
+	M025UserSuspended         = "M025UserSuspended"
+	M030InvalidRole           = "M030InvalidRole"
+	M031OperationNotPermitted = "M031OperationNotPermitted"
 
 	M012DuplicateTeamName           = "M012DuplicateTeamName"
 	M013SetTeamCaptainOutsider      = "M013SetTeamCaptainOutsider"
