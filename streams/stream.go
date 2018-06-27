@@ -7,11 +7,16 @@ import (
 	"sync"
 	"time"
 
+	"github.com/daominah/livestream/connections"
 	"github.com/daominah/livestream/conversations"
 	l "github.com/daominah/livestream/language"
 	"github.com/daominah/livestream/misc"
 	"github.com/daominah/livestream/users"
 	"github.com/daominah/livestream/zconfig"
+)
+
+const (
+	COMMAND_NEW_VIEWER = "COMMAND_NEW_VIEWER"
 )
 
 var MapUserIdToStream = make(map[int64]*Stream)
@@ -41,6 +46,14 @@ func (u *Stream) ToMap() map[string]interface{} {
 	s := u.ToString()
 	json.Unmarshal([]byte(s), &result)
 	return result
+}
+
+func (u *Stream) writeMapToAllViewer(err error, data map[string]interface{}) {
+	u.Mutex.Lock()
+	for _, uid := range u.ViewerIds {
+		connections.WriteMapToUserId(uid, err, data)
+	}
+	u.Mutex.Unlock()
 }
 
 func CreateStream(userId int64) (*Stream, error) {
@@ -102,5 +115,9 @@ func ViewStream(viewerId int64, broadcasterId int64) (*Stream, error) {
 	targetStream.ViewerIds = append(targetStream.ViewerIds, viewerId)
 	targetStream.Mutex.Unlock()
 	conversations.AddMember(targetStream.ConversationId, viewerId, false)
+	targetStream.writeMapToAllViewer(nil, map[string]interface{}{
+		"Command":     COMMAND_NEW_VIEWER,
+		"NewViewerId": viewerId,
+	})
 	return targetStream, nil
 }
