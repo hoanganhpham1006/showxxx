@@ -16,8 +16,10 @@ const (
 
 	IsDeveloping = true
 
-	WebsocketPort = ":2052"
-	HttpPort      = ":2082"
+	WebsocketPort = ":20001"
+	HttpPort      = ":20002"
+
+	ProfilePort = ":20000"
 
 	StaticHost         = "127.0.0.1"
 	StaticUploadPort   = ":20891"
@@ -40,7 +42,10 @@ const (
 var Language = LANG_ENGLISH
 var DefaultFutureTime, _ = time.Parse(time.RFC3339, "9999-01-01T00:00:00+07:00")
 
+var Test = int64(5)
+
 func init() {
 	_ = fmt.Println
 	// fmt.Println("DefaultFutureTime", DefaultFutureTime)
+	Test += 5
 }

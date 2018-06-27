@@ -9,10 +9,11 @@ import (
 	_ "net/http/pprof"
 	"runtime"
 
-	//	"github.com/daominah/livestream/zconfig"
 	"github.com/daominah/livestream/connections"
+	"github.com/daominah/livestream/zconfig"
 	"github.com/daominah/livestream/zdatabase"
 	//	"github.com/daominah/livestream/zglobal"
+	"github.com/daominah/livestream/admintool"
 	"github.com/daominah/livestream/misc"
 	"github.com/daominah/livestream/rank"
 )
@@ -23,15 +24,20 @@ func init() {
 }
 
 func main() {
-	// app profile
+	// app profile: memory, inused objects, goroutines...
 	go func() {
-		log.Println(http.ListenAndServe("localhost:6060", nil))
+		log.Println(http.ListenAndServe("localhost"+zconfig.ProfilePort, nil))
 	}()
 	runtime.SetBlockProfileRate(1)
 
-	// receive, handle and respond to client
+	// Create tables in database. The second call should return duplicate errors.
 	zdatabase.InitTables()
+
+	// receive, handle and respond to client
 	connections.ListenAndServe(doAfterReceivingMessage, doAfterClosingConnection)
+
+	//
+	admintool.ListenAndServe()
 
 	// reset rank leaderboard
 	go func() {
@@ -63,5 +69,7 @@ func main() {
 		}
 	}()
 
+	//
+	fmt.Println("main hohohaha")
 	select {}
 }

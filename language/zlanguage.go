@@ -14,6 +14,7 @@ const (
 	M022InvalidUserId     = "M022InvalidUserId"
 	M024InvalidLoginType  = "M024InvalidLoginType"
 	M025UserSuspended     = "M025UserSuspended"
+	M030InvalidRole       = "M030InvalidRole"
 
 	M012DuplicateTeamName           = "M012DuplicateTeamName"
 	M013SetTeamCaptainOutsider      = "M013SetTeamCaptainOutsider"

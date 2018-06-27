@@ -443,6 +443,10 @@ func SuspendUser(userId int64, isSuspended bool) error {
 }
 
 func ChangeUserRole(userId int64, newRole string) error {
+	if misc.FindStringInSlice(
+		newRole, []string{ROLE_ADMIN, ROLE_BROADCASTER, ROLE_USER}) == -1 {
+		return errors.New(l.Get(l.M001DuplicateUsername))
+	}
 	_, e := zdatabase.DbPool.Exec(
 		`UPDATE "user" SET role = $1 WHERE id = $2`,
 		newRole, userId)

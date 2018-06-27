@@ -8,9 +8,10 @@ func init() {
 		M002InvalidLogin:      "Tên đăng nhập hoặc mật khẩu không đúng",
 		M020InvalidSex:        "Sex must be in [SEX_MALE, SEX_FEMALE, SEX_UNDEFINED]",
 		M021InvalidCountry:    "Quốc gia phải có định dạng ISO 3166-1 alpha-2: VN, US, GB,.. ",
-		M022InvalidUserId:     "M022InvalidUserId",
-		M024InvalidLoginType:  "M024InvalidLoginType",
+		M022InvalidUserId:     "Sai mã nhận dạng người chơi",
+		M024InvalidLoginType:  "Sai kiểu đăng nhập",
 		M025UserSuspended:     "Tài khoản của bạn đã bị tạm ngưng hoạt động",
+		M030InvalidRole:       "Sai kiểu người dùng.",
 
 		M012DuplicateTeamName:           "Tên đội bị trùng",
 		M013SetTeamCaptainOutsider:      "Chỉ có thành viên mới có thể thành đội trưởng",
