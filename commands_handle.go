@@ -191,6 +191,12 @@ func ConversationDetail(userId int64, conversationId int64) (
 	res := map[string]interface{}{"Conversation": conv.ToMap()}
 	return res, nil
 }
+func ConversationCreate(senderId int64, recipientId int64) (
+	map[string]interface{}, error) {
+	conversationId, err := conversations.CreateConversation(
+		[]int64{senderId, recipientId}, nil, conversations.CONVERSATION_PAIR)
+	return map[string]interface{}{"ConversationId": conversationId}, err
+}
 func ConversationCreateMessage(
 	conversationId int64, senderId int64, messageContent string) (
 	map[string]interface{}, error) {

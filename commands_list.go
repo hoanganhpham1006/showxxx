@@ -118,6 +118,11 @@ func doAfterReceivingMessage(connection *connections.Connection, message []byte)
 			d, e = ConversationDetail(
 				connection.UserId,
 				m.ReadInt64(data, "ConversationId"))
+		case "ConversationCreate":
+			d, e = ConversationCreate(
+				connection.UserId,
+				m.ReadInt64(data, "RecipientId"),
+			)
 		case "ConversationCreateMessage":
 			d, e = ConversationCreateMessage(
 				m.ReadInt64(data, "ConversationId"),
