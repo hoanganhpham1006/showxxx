@@ -44,9 +44,11 @@ func Test01(t *testing.T) {
 	}
 	CreateMessage(cid, 3, "Ke bon tao", DISPLAY_TYPE_NORMAL)
 
-	CreateConversation([]int64{1, 2}, []int64{}, CONVERSATION_PAIR)
-	_, e = CreateConversation([]int64{1, 2}, []int64{}, CONVERSATION_PAIR)
-	if (e == nil) || (e.Error() != l.Get(l.M006ConversationPairUnique)) {
+	cid1, _ := CreateConversation([]int64{1, 2}, []int64{}, CONVERSATION_PAIR)
+	cid2, e := CreateConversation([]int64{1, 2}, []int64{}, CONVERSATION_PAIR)
+	//	fmt.Println("cid2", cid2)
+	if (e == nil) || (e.Error() != l.Get(l.M006ConversationPairUnique)) ||
+		(cid1 != cid2) {
 		t.Error(e)
 	}
 	cid = LoadConversationPairId(1, 2)

@@ -180,7 +180,16 @@ func CreateConversation(
 			return 0, e
 		} else {
 			if pqErr.Code.Name() == "unique_violation" {
-				return 0, errors.New(l.Get(l.M006ConversationPairUnique))
+				oldRow := zdatabase.DbPool.QueryRow(
+					`SELECT id FROM  conversation 
+            		WHERE pair_key = $1`,
+					pairKey)
+				var oldConvId int64
+				err := oldRow.Scan(&oldConvId)
+				if err != nil {
+					return 0, err
+				}
+				return oldConvId, errors.New(l.Get(l.M006ConversationPairUnique))
 			} else {
 				return 0, e
 			}
