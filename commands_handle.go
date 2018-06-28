@@ -9,6 +9,7 @@ import (
 	//	m "github.com/daominah/livestream/misc"
 	"github.com/daominah/livestream/connections"
 	"github.com/daominah/livestream/conversations"
+	//	"github.com/daominah/livestream/games/singleplayer"
 	l "github.com/daominah/livestream/language"
 	"github.com/daominah/livestream/rank"
 	"github.com/daominah/livestream/streams"
@@ -371,4 +372,8 @@ func StreamForwardSignaling(
 	}
 	connections.WriteMapToUserId(targetUserId, nil, data)
 	return nil, nil
+}
+
+func GameEggsCreate() {
+	//	_ = singleplayer.Game{}
 }

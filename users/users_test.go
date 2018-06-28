@@ -56,7 +56,7 @@ func T1est03(t *testing.T) {
 	if e != nil {
 		t.Error(e)
 	}
-	//	fmt.Println(user.ToString())
+	//	fmt.Println(user.String())
 	moneyType := MT_CASH
 	nChanges := 1000
 	mb := user.MapMoney[moneyType]
@@ -71,7 +71,7 @@ func T1est03(t *testing.T) {
 	waitGroup.Wait()
 	ma1 := MapIdToUser[user.Id].MapMoney[moneyType]
 	user, _ = LoginByCookie(cookie)
-	// fmt.Println(user.ToString())
+	// fmt.Println(user.String())
 	ma := user.MapMoney[moneyType]
 	if ma-mb != float64(nChanges) {
 		t.Error("ma-mb != nChanges")
@@ -204,7 +204,7 @@ func Test09(t *testing.T) {
 
 func Test10(t *testing.T) {
 	user, _ := GetUser(1)
-	// fmt.Println("user", user.ToString(), user.ToShortMap())
+	// fmt.Println("user", user.String(), user.ToShortMap())
 	if user.TeamId == 0 {
 		t.Error()
 	}

@@ -8,3 +8,7 @@
 
 ## Documentation
 Read files in folder `./document`
+
+## Folder structure conventions
+* Package main can import all packages
+* A package doesn't import same or lower level packages.  

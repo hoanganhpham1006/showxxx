@@ -66,7 +66,7 @@ func UserDetail(r *http.Request, w http.ResponseWriter, p martini.Params) string
 		http.Error(w, err.Error(), 400)
 		return ""
 	}
-	return user.ToString()
+	return user.String()
 }
 
 func UserChangeRole(r *http.Request, w http.ResponseWriter, p martini.Params) string {

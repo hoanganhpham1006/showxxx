@@ -80,3 +80,23 @@ func bisectRight(a []float64, x float64, lo int, hi int) (int, error) {
 func BisectRight(a []float64, x float64) (int, error) {
 	return bisectRight(a, x, 0, len(a))
 }
+
+// a slice has been kept within a particular size
+type LimitedList struct {
+	MaxLen   int
+	Elements []string
+}
+
+func CreateLimitedList(MaxLen int) *LimitedList {
+	return &LimitedList{
+		MaxLen:   MaxLen,
+		Elements: make([]string, 0),
+	}
+}
+
+func (list *LimitedList) Append(newE string) {
+	list.Elements = append(list.Elements, newE)
+	if len(list.Elements) > list.MaxLen {
+		list.Elements = list.Elements[len(list.Elements)-list.MaxLen:]
+	}
+}

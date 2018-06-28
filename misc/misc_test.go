@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"testing"
-	"time"
+	//	"time"
 )
 
 func Test01(t *testing.T) {
@@ -98,4 +98,19 @@ func Test04(t *testing.T) {
 	//		fmt.Println(time.Now())
 	//		time.Sleep(1 * time.Second)
 	//	}
+}
+
+func Test05(t *testing.T) {
+	list := CreateLimitedList(3)
+	for i := 0; i < 10; i++ {
+		list.Append(fmt.Sprintf("%v", i))
+	}
+	if len(list.Elements) != 3 {
+		t.Error()
+		return
+	}
+	if !((list.Elements[0] == "7") && (list.Elements[1] == "8") &&
+		(list.Elements[2] == "9")) {
+		t.Error(list)
+	}
 }

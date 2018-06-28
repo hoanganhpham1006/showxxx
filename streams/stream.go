@@ -31,7 +31,7 @@ type Stream struct {
 	Mutex          sync.Mutex
 }
 
-func (u *Stream) ToString() string {
+func (u *Stream) String() string {
 	u.Mutex.Lock()
 	defer u.Mutex.Unlock()
 	bs, e := json.MarshalIndent(u, "", "    ")
@@ -43,7 +43,7 @@ func (u *Stream) ToString() string {
 
 func (u *Stream) ToMap() map[string]interface{} {
 	result := make(map[string]interface{})
-	s := u.ToString()
+	s := u.String()
 	json.Unmarshal([]byte(s), &result)
 	return result
 }

@@ -92,7 +92,7 @@ type Recipient struct {
 }
 
 // json format
-func (c *Conversation) ToString() string {
+func (c *Conversation) String() string {
 	c.Mutex.Lock()
 	defer c.Mutex.Unlock()
 	bs, e := json.MarshalIndent(c, "", "    ")
@@ -104,7 +104,7 @@ func (c *Conversation) ToString() string {
 
 func (u *Conversation) ToMap() map[string]interface{} {
 	result := make(map[string]interface{})
-	s := u.ToString()
+	s := u.String()
 	json.Unmarshal([]byte(s), &result)
 	return result
 }
@@ -132,7 +132,7 @@ func (c *Conversation) ToShortMap() map[string]interface{} {
 	}
 }
 
-func (m *Message) ToString() string {
+func (m *Message) String() string {
 	m.Mutex.Lock()
 	defer m.Mutex.Unlock()
 	bs, e := json.MarshalIndent(m, "", "    ")
@@ -144,7 +144,7 @@ func (m *Message) ToString() string {
 
 func (u *Message) ToMap() map[string]interface{} {
 	result := make(map[string]interface{})
-	s := u.ToString()
+	s := u.String()
 	json.Unmarshal([]byte(s), &result)
 	return result
 }

@@ -114,7 +114,7 @@ type User struct {
 	Mutex sync.Mutex
 }
 
-func (u *User) ToString() string {
+func (u *User) String() string {
 	u.Mutex.Lock()
 	defer u.Mutex.Unlock()
 	bs, e := json.MarshalIndent(u, "", "    ")
@@ -126,7 +126,7 @@ func (u *User) ToString() string {
 
 func (u *User) ToMap() map[string]interface{} {
 	result := make(map[string]interface{})
-	s := u.ToString()
+	s := u.String()
 	json.Unmarshal([]byte(s), &result)
 	return result
 }

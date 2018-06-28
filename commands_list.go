@@ -19,6 +19,9 @@ func doAfterReceivingMessage(connection *connections.Connection, message []byte)
 	}
 
 	command := m.ReadString(data, "Command")
+	// unique id has been created by client that help to identify response
+	// belong to what request
+	commandId := m.ReadInt64(data, "CommandId")
 	// responseData
 	var d map[string]interface{}
 	// responseError
@@ -238,5 +241,6 @@ func doAfterReceivingMessage(connection *connections.Connection, message []byte)
 		d = map[string]interface{}{}
 	}
 	d["Command"] = command
+	d["CommandId"] = commandId
 	connection.WriteMap(e, d)
 }
