@@ -232,6 +232,17 @@ func doAfterReceivingMessage(connection *connections.Connection, message []byte)
 		case "StreamReport":
 			_ = 1
 
+		case "GameEggsCreateMatch":
+			d, e = GameEggsCreateMatch(connection.UserId)
+		case "GameEggsBreak":
+			d, e = GameEggsBreak(
+				connection.UserId,
+				data,
+				m.ReadInt64(data, "HammerType"), // 0,1,2,3
+			)
+		case "GameEggsGetMatchDetail":
+			d, e = GameEggsGetMatchDetail(connection.UserId)
+
 		default:
 			d = map[string]interface{}{"message": string(message)}
 			e = errors.New("Logged in. " + l.Get(l.M010CommandNotSupported))

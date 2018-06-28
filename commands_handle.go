@@ -9,7 +9,7 @@ import (
 	//	m "github.com/daominah/livestream/misc"
 	"github.com/daominah/livestream/connections"
 	"github.com/daominah/livestream/conversations"
-	//	"github.com/daominah/livestream/games/singleplayer"
+	//	"github.com/daominah/livestream/games/singleplayer/eggs"
 	l "github.com/daominah/livestream/language"
 	"github.com/daominah/livestream/rank"
 	"github.com/daominah/livestream/streams"
@@ -374,6 +374,15 @@ func StreamForwardSignaling(
 	return nil, nil
 }
 
-func GameEggsCreate() {
-	//	_ = singleplayer.Game{}
+func GameEggsCreateMatch(userId int64) (
+	map[string]interface{}, error) {
+	return nil, nil
+}
+func GameEggsBreak(userId int64, data map[string]interface{}, args ...interface{}) (
+	map[string]interface{}, error) {
+	return nil, nil
+}
+func GameEggsGetMatchDetail(userId int64) (
+	map[string]interface{}, error) {
+	return nil, nil
 }
