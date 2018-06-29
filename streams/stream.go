@@ -92,11 +92,15 @@ func CreateStream(userId int64) (*Stream, error) {
 func ViewStream(viewerId int64, broadcasterId int64) (*Stream, error) {
 	GMutex.Lock()
 	defer GMutex.Unlock()
+	if viewerId == 0 {
+		return nil, errors.New(l.Get(l.M022InvalidUserId))
+	}
 	targetStream := MapUserIdToStream[broadcasterId]
 	if targetStream == nil {
 		return nil, errors.New(l.Get(l.M028StreamNotBroadcasting))
 	}
 	viewingStreamId := int64(0)
+	var viewingStream *Stream
 	for _, stream := range MapUserIdToStream {
 		stream.Mutex.Lock()
 		if misc.FindInt64InSlice(viewerId, stream.ViewerIds) != -1 {
@@ -104,11 +108,12 @@ func ViewStream(viewerId int64, broadcasterId int64) (*Stream, error) {
 		}
 		stream.Mutex.Unlock()
 		if viewingStreamId != 0 {
+			viewingStream = stream
 			break
 		}
 	}
 	if viewingStreamId != 0 {
-		return nil, fmt.Errorf("%v: %v", l.Get(l.M029StreamConcurrentView), viewingStreamId)
+		return viewingStream, fmt.Errorf("%v: %v", l.Get(l.M029StreamConcurrentView))
 	}
 	//
 	targetStream.Mutex.Lock()
