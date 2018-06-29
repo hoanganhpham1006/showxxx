@@ -49,11 +49,11 @@ func ListenAndServe(
 	doAfterClosingConnection func(connection *Connection),
 ) {
 	go func() {
-		fmt.Printf("Listening http message on address host%v/ws\n",
+		fmt.Printf("Listening websocket on address host%v/ws\n",
 			zconfig.WebsocketPort)
 		err := http.ListenAndServe(zconfig.WebsocketPort, nil)
 		if err != nil {
-			fmt.Printf("Fail to listen http message on address host%v/ws\n %v\n",
+			fmt.Printf("Fail to listen websocket on address host%v/ws\n %v\n",
 				zconfig.WebsocketPort, err.Error())
 		}
 	}()

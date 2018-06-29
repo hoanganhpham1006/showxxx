@@ -16,6 +16,7 @@ import (
 	"github.com/daominah/livestream/admintool"
 	"github.com/daominah/livestream/misc"
 	"github.com/daominah/livestream/rank"
+	"github.com/daominah/livestream/streams"
 )
 
 func init() {
@@ -33,10 +34,9 @@ func main() {
 	// Create tables in database. The second call should return duplicate errors.
 	zdatabase.InitTables()
 
-	// receive, handle and respond to client
-	connections.ListenAndServe(doAfterReceivingMessage, doAfterClosingConnection)
-
 	//
+	connections.ListenAndServe(doAfterReceivingMessage, doAfterClosingConnection)
+	streams.ForwarderListenAndServer()
 	admintool.ListenAndServe()
 
 	// reset rank leaderboard

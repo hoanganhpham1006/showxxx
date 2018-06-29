@@ -18,6 +18,7 @@ const (
 
 	WebsocketPort = ":20001"
 	HttpPort      = ":20002"
+	SocketIoPort  = ":20003"
 
 	ProfilePort = ":20000"
 

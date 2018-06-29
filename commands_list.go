@@ -219,12 +219,6 @@ func doAfterReceivingMessage(connection *connections.Connection, message []byte)
 			)
 		case "StreamStopViewing":
 			_ = 1
-		case "StreamForwardSignaling":
-			d, e = StreamForwardSignaling(
-				connection.UserId,
-				m.ReadInt64(data, "TargetUserId"),
-				data,
-			)
 		case "StreamAllSummaries":
 			_ = 1
 		case "StreamDetail":

@@ -1,7 +1,7 @@
 package admintool
 
 import (
-	//	"fmt"
+	"fmt"
 
 	"github.com/go-martini/martini"
 
@@ -26,5 +26,6 @@ func CreateRouter() *martini.ClassicMartini {
 
 func ListenAndServe() {
 	r := CreateRouter()
+	fmt.Printf("Listening admintool on address host%v\n", zconfig.HttpPort)
 	go r.RunOnAddr(zconfig.HttpPort)
 }
