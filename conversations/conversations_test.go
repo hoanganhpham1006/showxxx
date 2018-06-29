@@ -30,6 +30,7 @@ func Test01(t *testing.T) {
 		t.Error()
 	}
 	conv.Mutex.Unlock()
+	fmt.Println(conv.String())
 
 	e = CreateMessage(cid, 3, "Uh nghe roi, tao 3 nay", DISPLAY_TYPE_NORMAL)
 	conv.Mutex.Lock()

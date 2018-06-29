@@ -140,9 +140,11 @@ func LoadMessage(mid int64) (*Message, error) {
 		var has_seen bool
 		var seen_time time.Time
 		e = rows3.Scan(&recipient_id, &has_seen, &seen_time)
+		msg.Mutex.Lock()
 		msg.Recipients[recipient_id] =
 			&Recipient{MessageId: mid, RecipientId: recipient_id,
 				HasSeen: has_seen, SeenTime: seen_time}
+		msg.Mutex.Unlock()
 	}
 	//
 	GMutex.Lock()
@@ -213,7 +215,7 @@ func UserLoadAllConversations(userId int64, filter string, nConversation int) (
 	for _, cid := range cids {
 		conv, _ := GetConversation(cid)
 		if conv != nil {
-			result = append(result, conv.ToShortMap())
+			result = append(result, conv.ToShortMap(userId))
 		}
 	}
 	return result, nil

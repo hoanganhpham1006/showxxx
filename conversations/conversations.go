@@ -61,7 +61,7 @@ type Conversation struct {
 	Type string
 	// map userId to memberInConversation
 	Members  map[int64]*Member
-	Messages []*Message
+	Messages []*Message `json:"-"`
 	Mutex    sync.Mutex
 }
 
@@ -91,7 +91,7 @@ type Recipient struct {
 	SeenTime    time.Time
 }
 
-// json format
+// json format, msgs excluded to avoid concurrent rw map
 func (c *Conversation) String() string {
 	c.Mutex.Lock()
 	defer c.Mutex.Unlock()
@@ -102,25 +102,39 @@ func (c *Conversation) String() string {
 	return string(bs)
 }
 
+//
 func (u *Conversation) ToMap() map[string]interface{} {
 	result := make(map[string]interface{})
 	s := u.String()
 	json.Unmarshal([]byte(s), &result)
+	msgs := make([]map[string]interface{}, 0)
+	u.Mutex.Lock()
+	for _, msg := range u.Messages {
+		msgs = append(msgs, msg.ToMap())
+	}
+	u.Mutex.Unlock()
 	return result
 }
 
-func (c *Conversation) ToShortMap() map[string]interface{} {
+// for show all conv of 1 user
+func (c *Conversation) ToShortMap(userId int64) map[string]interface{} {
 	c.Mutex.Lock()
 	defer c.Mutex.Unlock()
 	if len(c.Messages) >= 1 {
 		lastMsg := c.Messages[len(c.Messages)-1]
 		lastMsgSenderN, _ := users.GetProfilenameById(lastMsg.SenderId)
+		hasSeen := false
+		lastMsg.Mutex.Lock()
+		recipient := lastMsg.Recipients[userId]
+		hasSeen = recipient.HasSeen
+		lastMsg.Mutex.Unlock()
 		result := map[string]interface{}{
 			"Id":             c.Id,
 			"Name":           c.Name,
 			"LastMsgSender":  lastMsgSenderN,
 			"LastMsgTime":    lastMsg.CreatedTime,
 			"LastMsgContent": lastMsg.MessageContent,
+			"HasSeen":        hasSeen,
 		}
 		return result
 	} else {
