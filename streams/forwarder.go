@@ -71,6 +71,7 @@ func ForwarderListenAndServer() {
 		}
 	})
 	server.On("exchange", func(c *gosocketio.Channel, dataS string) string {
+		fmt.Println("exchange", dataS)
 		var data map[string]interface{}
 		err := json.Unmarshal([]byte(dataS), &data)
 		if err != nil {
