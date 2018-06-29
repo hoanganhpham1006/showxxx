@@ -15,7 +15,7 @@ func CreateRouter() *martini.ClassicMartini {
 	r.Post("/users/login", UserLogin) // "Username" string, "Password" string
 
 	r.Get("/users/:uid", UserDetail)            //
-	r.Put("/users/:uid/role", UserChangeRole)   // "NewRole" string
+	r.Put("/users/:uid/role", UserChangeRole)   // "NewRole" string ROLE_ADMIN, ROLE_BROADCASTER, ROLE_USER
 	r.Put("/users/:uid/suspend", UserSuspend)   // "IsSuspended" bool
 	r.Patch("/users/:uid/cash", UserChangeCash) // "Change" float64
 

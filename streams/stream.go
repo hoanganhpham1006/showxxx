@@ -61,9 +61,9 @@ func CreateStream(userId int64) (*Stream, error) {
 	if user == nil {
 		return nil, errors.New(l.Get(l.M022InvalidUserId))
 	}
-	if user.Role != users.ROLE_BROADCASTER {
-		return nil, errors.New(l.Get(l.M026StreamCreatePrivilege))
-	}
+	//	if user.Role != users.ROLE_BROADCASTER {
+	//		return nil, errors.New(l.Get(l.M026StreamCreatePrivilege))
+	//	}
 	GMutex.Lock()
 	oldStream := MapUserIdToStream[userId]
 	GMutex.Unlock()
