@@ -79,7 +79,7 @@ func CreateStream(userId int64) (*Stream, error) {
 		BroadcasterId:  userId,
 		StartedTime:    time.Now(),
 		FinishedTime:   zconfig.DefaultFutureTime,
-		ViewerIds:      make([]int64, userId),
+		ViewerIds:      []int64{userId},
 		ConversationId: conversationId,
 	}
 	GMutex.Lock()
