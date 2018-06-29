@@ -16,6 +16,7 @@ import (
 
 var MapUidToConnection = make(map[int64]*gosocketio.Channel)
 
+//
 func toString(err error, data map[string]interface{}) string {
 	if data == nil {
 		data = make(map[string]interface{})
@@ -49,9 +50,11 @@ func ForwarderListenAndServer() {
 		if err != nil {
 			return toString(err, nil)
 		}
-		broadcasterId := misc.ReadInt64(data, "BroadcasterId")
+		broadcasterIdS := misc.ReadString(data, "BroadcasterId")
+		broadcasterId, _ := strconv.ParseInt(broadcasterIdS, 10, 64)
 		isCreatingStream := misc.ReadBool(data, "IsCreatingStream")
-		viewerId := misc.ReadInt64(data, "ViewerId")
+		viewerIdS := misc.ReadString(data, "ViewerId")
+		viewerId, _ := strconv.ParseInt(viewerIdS, 10, 64)
 		var stream *Stream
 		if isCreatingStream {
 			stream, err = CreateStream(broadcasterId)
