@@ -82,9 +82,9 @@ func ForwarderListenAndServer() {
 		conn := MapUidToConnection[recipientId]
 		GMutex.Unlock()
 		if conn != nil {
-			go func() {
+			go func(conn *gosocketio.Channel) {
 				conn.Ack("exchange", dataS, 5*time.Second)
-			}()
+			}(conn)
 		}
 		return ""
 	})
