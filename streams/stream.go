@@ -10,7 +10,7 @@ import (
 	"github.com/daominah/livestream/connections"
 	"github.com/daominah/livestream/conversations"
 	l "github.com/daominah/livestream/language"
-	"github.com/daominah/livestream/misc"
+	//	"github.com/daominah/livestream/misc"
 	"github.com/daominah/livestream/users"
 	"github.com/daominah/livestream/zconfig"
 	"github.com/daominah/livestream/zdatabase"
@@ -35,7 +35,7 @@ type Stream struct {
 	BroadcasterId  int64
 	StartedTime    time.Time
 	FinishedTime   time.Time
-	ViewerIds      []int64
+	ViewerIds      map[int64]bool
 	MapUidToReport map[int64]*Report
 	ConversationId int64
 }
@@ -57,12 +57,11 @@ func (u *Stream) ToMap() map[string]interface{} {
 	return result
 }
 
+// need Mutex.Lock() before call this func
 func (u *Stream) writeMapToAllViewer(err error, data map[string]interface{}) {
-	GMutex.Lock()
-	for _, uid := range u.ViewerIds {
+	for uid, _ := range u.ViewerIds {
 		connections.WriteMapToUserId(uid, err, data)
 	}
-	GMutex.Unlock()
 }
 
 func CreateStream(userId int64) (*Stream, error) {
@@ -88,7 +87,8 @@ func CreateStream(userId int64) (*Stream, error) {
 		BroadcasterId:  userId,
 		StartedTime:    time.Now(),
 		FinishedTime:   zconfig.DefaultFutureTime,
-		ViewerIds:      []int64{userId},
+		ViewerIds:      map[int64]bool{userId: true},
+		MapUidToReport: make(map[int64]*Report),
 		ConversationId: conversationId,
 	}
 	GMutex.Lock()
@@ -96,6 +96,45 @@ func CreateStream(userId int64) (*Stream, error) {
 	GMutex.Unlock()
 	user.StatusL1 = users.STATUS_BROADCASTING
 	return stream, nil
+}
+
+func FinishStream(broadcasterId int64) error {
+	GMutex.Lock()
+	defer GMutex.Unlock()
+	stream := MapUserIdToStream[broadcasterId]
+	if stream == nil {
+		return errors.New(l.Get(l.M028StreamNotBroadcasting))
+	}
+	stream.writeMapToAllViewer(nil, map[string]interface{}{
+		"Command":       COMMAND_STREAM_FINISHED,
+		"BroadcasterId": stream.BroadcasterId,
+	})
+	stream.FinishedTime = time.Now()
+	// TODO: users.MT_BROADCAST_DURATION
+	for uid, _ := range stream.ViewerIds {
+		user, _ := users.GetUser(uid)
+		if user != nil {
+			user.StatusL1 = users.STATUS_ONLINE
+		}
+	}
+	delete(MapUserIdToStream, broadcasterId)
+	nViewers := len(stream.ViewerIds)
+	nReports := len(stream.MapUidToReport)
+	viewersB, _ := json.Marshal(stream.ViewerIds)
+	reportsB, _ := json.Marshal(stream.MapUidToReport)
+	go func() {
+		_, e := zdatabase.DbPool.Exec(
+			`INSERT INTO stream_archive
+    			(broadcaster_id, started_time, finished_time,
+    			n_viewers, n_reports, viewers, reports, conversation_id)
+        	VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`,
+			stream.BroadcasterId, stream.StartedTime, stream.FinishedTime,
+			nViewers, nReports, string(viewersB), string(reportsB),
+			stream.ConversationId,
+		)
+		_ = e
+	}()
+	return nil
 }
 
 func ViewStream(viewerId int64, broadcasterId int64) (*Stream, error) {
@@ -113,7 +152,7 @@ func ViewStream(viewerId int64, broadcasterId int64) (*Stream, error) {
 	var viewingStream *Stream
 	GMutex.Lock()
 	for _, stream := range MapUserIdToStream {
-		if misc.FindInt64InSlice(viewerId, stream.ViewerIds) != -1 {
+		if stream.ViewerIds[viewerId] {
 			viewingStreamId = stream.BroadcasterId
 		}
 		if viewingStreamId != 0 {
@@ -127,46 +166,64 @@ func ViewStream(viewerId int64, broadcasterId int64) (*Stream, error) {
 	}
 	//
 	GMutex.Lock()
-	targetStream.ViewerIds = append(targetStream.ViewerIds, viewerId)
-	GMutex.Unlock()
-	viewer.StatusL1 = users.STATUS_WATCHING
-	viewer.StatusL2 = fmt.Sprintf(`{"BroadcasterId": %v}`, broadcasterId)
-	conversations.AddMember(targetStream.ConversationId, viewerId, false)
+	targetStream.ViewerIds[viewerId] = true
 	targetStream.writeMapToAllViewer(nil, map[string]interface{}{
 		"Command":     COMMAND_NEW_VIEWER,
 		"NewViewerId": viewerId,
 	})
+	GMutex.Unlock()
+	viewer.StatusL1 = users.STATUS_WATCHING
+	viewer.StatusL2 = fmt.Sprintf(`{"BroadcasterId": %v}`, broadcasterId)
+	conversations.AddMember(targetStream.ConversationId, viewerId, false)
 	return targetStream, nil
 }
 
-func FinishStream(broadcasterId int64) error {
+func StopViewingStream(viewerId int64) error {
+	viewer, e := users.GetUser(viewerId)
+	if viewer == nil {
+		return e
+	}
+	_, targetStream := GetViewingStream(viewerId)
+	if targetStream == nil {
+		return errors.New(l.Get(l.M028StreamNotBroadcasting))
+	}
+	//
+	GMutex.Lock()
+	delete(targetStream.ViewerIds, viewerId)
+	GMutex.Unlock()
+	viewer.StatusL1 = users.STATUS_ONLINE
+	viewer.StatusL2 = "{}"
+	conversations.RemoveMember(targetStream.ConversationId, viewerId)
+	return nil
+}
+
+func ReportStream(viewerId int64, broadcasterId int64, reason string) error {
 	GMutex.Lock()
 	defer GMutex.Unlock()
 	stream := MapUserIdToStream[broadcasterId]
 	if stream == nil {
 		return errors.New(l.Get(l.M028StreamNotBroadcasting))
 	}
-	stream.writeMapToAllViewer(nil, map[string]interface{}{
-		"Command":       COMMAND_STREAM_FINISHED,
-		"BroadcasterId": stream.BroadcasterId,
-	})
-	stream.FinishedTime = time.Now()
-	// TODO: users.MT_BROADCAST_DURATION
-	delete(MapUserIdToStream, broadcasterId)
-	nViewers := len(stream.ViewerIds)
-	nReports := len(stream.MapUidToReport)
-	viewersB, _ := json.Marshal(stream.ViewerIds)
-	reportsB, _ := json.Marshal(stream.MapUidToReport)
-	go func() {
-		zdatabase.DbPool.Exec(
-			`INSERT INTO stream_archive
-    			(broadcaster_id, started_time, finished_time,
-    			n_viewers, n_reports, viewers, reports, conversation_id)
-        	VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`,
-			stream.BroadcasterId, stream.StartedTime, stream.FinishedTime,
-			nViewers, nReports, string(viewersB), string(reportsB),
-			stream.ConversationId,
-		)
-	}()
+	if !stream.ViewerIds[viewerId] {
+		return errors.New(l.Get(l.M032StreamOnlyViewerCanReport))
+	}
+	stream.MapUidToReport[viewerId] = &Report{UserId: viewerId, Reason: reason}
 	return nil
+}
+
+func GetViewingStream(viewerId int64) (int64, *Stream) {
+	viewingStreamId := int64(0)
+	var viewingStream *Stream
+	GMutex.Lock()
+	for _, stream := range MapUserIdToStream {
+		if stream.ViewerIds[viewerId] {
+			viewingStreamId = stream.BroadcasterId
+		}
+		if viewingStreamId != 0 {
+			viewingStream = stream
+			break
+		}
+	}
+	GMutex.Unlock()
+	return viewingStreamId, viewingStream
 }

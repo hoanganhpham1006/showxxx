@@ -14,7 +14,8 @@ import (
 	"github.com/daominah/livestream/zconfig"
 )
 
-var MapUidToConnection = make(map[int64]*gosocketio.Channel)
+var MapUidToSockio = make(map[int64]*gosocketio.Channel)
+var MapSockIpToUid = make(map[string]int64)
 
 //
 func toString(err error, data map[string]interface{}) string {
@@ -38,6 +39,12 @@ func ForwarderListenAndServer() {
 	})
 	server.On(gosocketio.OnDisconnection, func(c *gosocketio.Channel) {
 		fmt.Println("disconnection", c.Ip())
+		GMutex.Lock()
+		uid := MapSockIpToUid[c.Ip()]
+		delete(MapSockIpToUid, c.Ip())
+		delete(MapUidToSockio, uid)
+		GMutex.Unlock()
+		StopViewingStream(uid)
 	})
 	server.On("signal", func(c *gosocketio.Channel, dataS string) string {
 		fmt.Println("signal", dataS)
@@ -63,7 +70,8 @@ func ForwarderListenAndServer() {
 		}
 		if stream != nil {
 			GMutex.Lock()
-			MapUidToConnection[viewerId] = c
+			MapUidToSockio[viewerId] = c
+			MapSockIpToUid[c.Ip()] = viewerId
 			GMutex.Unlock()
 			return toString(err, stream.ToMap())
 		} else {
@@ -80,7 +88,7 @@ func ForwarderListenAndServer() {
 		recipientIdS := misc.ReadString(data, "to")
 		recipientId, _ := strconv.ParseInt(recipientIdS, 10, 64)
 		GMutex.Lock()
-		conn := MapUidToConnection[recipientId]
+		conn := MapUidToSockio[recipientId]
 		GMutex.Unlock()
 		if conn != nil {
 			go func(conn *gosocketio.Channel) {

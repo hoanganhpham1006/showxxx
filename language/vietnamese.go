@@ -37,9 +37,10 @@ func init() {
 
 		M023StaticServerDown: "Máy chủ lưu trữ không hoạt động",
 
-		M026StreamCreatePrivilege: "Bạn không có quyền stream",
-		M027StreamBroadcasted:     "Bạn đang phát sóng rồi",
-		M028StreamNotBroadcasting: "Người bạn muốn xem đang không phát sóng",
-		M029StreamConcurrentView:  "Bạn chỉ có thể xem một người tại một thời điểm",
+		M026StreamCreatePrivilege:     "Bạn không có quyền stream",
+		M027StreamBroadcasted:         "Bạn đang phát sóng rồi",
+		M028StreamNotBroadcasting:     "Người bạn muốn xem đang không phát sóng",
+		M029StreamConcurrentView:      "Bạn chỉ có thể xem một người tại một thời điểm",
+		M032StreamOnlyViewerCanReport: "Phải là người xem mới được báo cáo vi phạm",
 	}
 }

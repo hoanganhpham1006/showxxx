@@ -328,7 +328,7 @@ CREATE TABLE stream_archive (
     finished_time TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
     n_viewers BIGINT DEFAULT 0,
     n_reports BIGINT DEFAULT 0,
-    viewers TEXT DEFAULT '[]',
+    viewers TEXT DEFAULT '{}',
     reports TEXT DEFAULT '{}',
     conversation_id BIGINT DEFAULT 0 REFERENCES public.conversation (id)
 );

@@ -37,9 +37,10 @@ func init() {
 
 		M023StaticServerDown: "Static server is down",
 
-		M026StreamCreatePrivilege: "Only broadcaster can broadcast",
-		M027StreamBroadcasted:     "You broadcasted",
-		M028StreamNotBroadcasting: "Broadcaster is not broadcasting",
-		M029StreamConcurrentView:  "You can only view one broadcaster at a time",
+		M026StreamCreatePrivilege:     "Only broadcaster can broadcast",
+		M027StreamBroadcasted:         "You broadcasted",
+		M028StreamNotBroadcasting:     "Broadcaster is not broadcasting",
+		M029StreamConcurrentView:      "You can only view one broadcaster at a time",
+		M032StreamOnlyViewerCanReport: "Only viewer can report",
 	}
 }
