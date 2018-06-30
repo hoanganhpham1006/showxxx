@@ -212,21 +212,21 @@ func doAfterReceivingMessage(connection *connections.Connection, message []byte)
 				m.ReadBool(data, "IsAccepted"),
 			)
 
-		case "StreamCreate":
-			d, e = StreamCreate(
-				connection.UserId,
-				m.ReadString(data, "StreamName"),
-				m.ReadString(data, "StreamImage"),
-			)
-		case "StreamFinish":
-			_ = 1
-		case "StreamView":
-			d, e = StreamView(
-				connection.UserId,
-				m.ReadInt64(data, "BroadcasterId"),
-			)
-		case "StreamStopViewing":
-			_ = 1
+			//		case "StreamCreate":
+			//			d, e = StreamCreate(
+			//				connection.UserId,
+			//				m.ReadString(data, "StreamName"),
+			//				m.ReadString(data, "StreamImage"),
+			//			)
+			//		case "StreamFinish":
+			//			_ = 1
+			//		case "StreamView":
+			//			d, e = StreamView(
+			//				connection.UserId,
+			//				m.ReadInt64(data, "BroadcasterId"),
+			//			)
+			//		case "StreamStopViewing":
+			//			_ = 1
 		case "StreamAllSummaries":
 			d, e = StreamAllSummaries()
 		case "StreamGetMyViewing":
