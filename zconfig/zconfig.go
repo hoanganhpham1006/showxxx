@@ -31,7 +31,7 @@ const (
 	//
 	// you rarely need to config below vars
 
-	WebsocketMaxMessageSize = int64(8192)
+	WebsocketMaxMessageSize = int64(65536)
 	WebsocketWriteWait      = 60 * time.Second
 	WebsocketReadWait       = 60 * time.Second
 	WebsocketPingPeriod     = WebsocketReadWait * 9 / 10

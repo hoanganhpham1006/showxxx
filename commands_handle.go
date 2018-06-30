@@ -151,6 +151,14 @@ func UserChangeProfileImage(userId int64, newProfileImage []byte) (
 	profileImagePath, e := users.ChangeUserProfileImage(userId, newProfileImage)
 	return map[string]interface{}{"ProfileImagePath": profileImagePath}, e
 }
+func UploadFile(file []byte) (
+	map[string]interface{}, error) {
+	imgPath, e := users.UploadFile(file)
+	if e != nil {
+		return nil, errors.New(l.Get(l.M023StaticServerDown))
+	}
+	return map[string]interface{}{"FilePath": imgPath}, nil
+}
 func UserCheckFollowing(userId int64, targetId int64) (
 	map[string]interface{}, error) {
 	r := users.CheckIsFollowing(userId, targetId)
@@ -355,8 +363,9 @@ func TeamHandleJoiningRequest(teamId int64, userId int64, isAccepted bool) (
 	return nil, err
 }
 
-func StreamCreate(userId int64) (map[string]interface{}, error) {
-	stream, err := streams.CreateStream(userId)
+func StreamCreate(userId int64, streamName string, streamImage string) (
+	map[string]interface{}, error) {
+	stream, err := streams.CreateStream(userId, streamName, streamImage)
 	if stream == nil {
 		return nil, err
 	}
@@ -371,15 +380,23 @@ func StreamView(viewerId int64, broadcasterId int64) (
 	}
 	return stream.ToMap(), nil
 }
-
-func StreamForwardSignaling(
-	userId int64, targetUserId int64, data map[string]interface{}) (
+func StreamAllSummaries() (
 	map[string]interface{}, error) {
-	if data != nil {
-		data["Sender"] = userId
+	rows := streams.StreamAllSummaries()
+	return map[string]interface{}{"Streams": rows}, nil
+}
+func StreamGetMyViewing(viewerId int64) (
+	map[string]interface{}, error) {
+	_, stream := streams.GetViewingStream(viewerId)
+	if stream == nil {
+		return nil, nil
 	}
-	connections.WriteMapToUserId(targetUserId, nil, data)
-	return nil, nil
+	return stream.ToMap(), nil
+}
+func StreamReport(viewerId int64, broadcasterId int64, reason string) (
+	map[string]interface{}, error) {
+	err := streams.ReportStream(viewerId, broadcasterId, reason)
+	return nil, err
 }
 
 func GameEggsCreateMatch(userId int64) (

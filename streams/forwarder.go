@@ -44,7 +44,10 @@ func ForwarderListenAndServer() {
 		delete(MapSockIpToUid, c.Ip())
 		delete(MapUidToSockio, uid)
 		GMutex.Unlock()
-		StopViewingStream(uid)
+		err := StopViewingStream(uid)
+		if err != nil {
+			FinishStream(uid)
+		}
 	})
 	server.On("signal", func(c *gosocketio.Channel, dataS string) string {
 		fmt.Println("signal", dataS)
@@ -62,9 +65,11 @@ func ForwarderListenAndServer() {
 		isCreatingStream := misc.ReadBool(data, "IsCreatingStream")
 		viewerIdS := misc.ReadString(data, "ViewerId")
 		viewerId, _ := strconv.ParseInt(viewerIdS, 10, 64)
+		streamName := misc.ReadString(data, "StreamName")
+		streamImage := misc.ReadString(data, "StreamImage")
 		var stream *Stream
 		if isCreatingStream {
-			stream, err = CreateStream(broadcasterId)
+			stream, err = CreateStream(broadcasterId, streamName, streamImage)
 		} else {
 			stream, err = ViewStream(viewerId, broadcasterId)
 		}

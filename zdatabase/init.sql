@@ -324,6 +324,8 @@ INSERT INTO public.gift (name, val) VALUES ('Sports car ', 1000000);
 CREATE TABLE stream_archive (
     id BIGSERIAL, CONSTRAINT stream_archive_pkey PRIMARY KEY (id),
     broadcaster_id BIGINT DEFAULT 0 REFERENCES public."user" (id),
+    stream_image TEXT DEFAULT '',
+    stream_name TEXT DEFAULT '',
     started_time TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
     finished_time TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
     n_viewers BIGINT DEFAULT 0,

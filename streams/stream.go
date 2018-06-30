@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"sort"
 	"sync"
 	"time"
 
@@ -33,6 +34,8 @@ type Report struct {
 
 type Stream struct {
 	BroadcasterId  int64
+	StreamName     string
+	StreamImage    string
 	StartedTime    time.Time
 	FinishedTime   time.Time
 	ViewerIds      map[int64]bool
@@ -64,7 +67,8 @@ func (u *Stream) writeMapToAllViewer(err error, data map[string]interface{}) {
 	}
 }
 
-func CreateStream(userId int64) (*Stream, error) {
+func CreateStream(userId int64, streamName string, streamImage string) (
+	*Stream, error) {
 	user, e := users.GetUser(userId)
 	if user == nil {
 		return nil, errors.New(l.Get(l.M022InvalidUserId))
@@ -85,6 +89,8 @@ func CreateStream(userId int64) (*Stream, error) {
 	}
 	stream := &Stream{
 		BroadcasterId:  userId,
+		StreamName:     streamName,
+		StreamImage:    streamImage,
 		StartedTime:    time.Now(),
 		FinishedTime:   zconfig.DefaultFutureTime,
 		ViewerIds:      map[int64]bool{userId: true},
@@ -126,11 +132,12 @@ func FinishStream(broadcasterId int64) error {
 		_, e := zdatabase.DbPool.Exec(
 			`INSERT INTO stream_archive
     			(broadcaster_id, started_time, finished_time,
-    			n_viewers, n_reports, viewers, reports, conversation_id)
-        	VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`,
+    			n_viewers, n_reports, viewers, reports, conversation_id, 
+    			stream_name, stream_image)
+        	VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)`,
 			stream.BroadcasterId, stream.StartedTime, stream.FinishedTime,
 			nViewers, nReports, string(viewersB), string(reportsB),
-			stream.ConversationId,
+			stream.ConversationId, stream.StreamName, stream.StreamImage,
 		)
 		_ = e
 	}()
@@ -226,4 +233,32 @@ func GetViewingStream(viewerId int64) (int64, *Stream) {
 	}
 	GMutex.Unlock()
 	return viewingStreamId, viewingStream
+}
+
+type StreamNViewersOrder []*Stream
+
+func (a StreamNViewersOrder) Len() int { return len(a) }
+func (a StreamNViewersOrder) Less(i int, j int) bool {
+	return len(a[i].ViewerIds) > len(a[j].ViewerIds)
+}
+func (a StreamNViewersOrder) Swap(i int, j int) { a[i], a[j] = a[j], a[i] }
+
+func StreamAllSummaries() []map[string]interface{} {
+	GMutex.Lock()
+	result := make([]map[string]interface{}, 0)
+	temp := make([]*Stream, 0)
+	for _, stream := range MapUserIdToStream {
+		temp = append(temp, stream)
+	}
+	sort.Sort(StreamNViewersOrder(temp))
+	for _, stream := range temp {
+		result = append(result, map[string]interface{}{
+			"BroadcasterId": stream.BroadcasterId,
+			"NViewers":      len(stream.ViewerIds),
+			"StreamName":    stream.StreamName,
+			"StreamImage":   stream.StreamImage,
+		})
+	}
+	GMutex.Unlock()
+	return result
 }

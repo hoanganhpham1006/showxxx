@@ -106,6 +106,10 @@ func doAfterReceivingMessage(connection *connections.Connection, message []byte)
 				connection.UserId,
 				m.ReadBytes(data, "ImageBase64"),
 			)
+		case "UploadFile":
+			d, e = UploadFile(
+				m.ReadBytes(data, "FileBase64"),
+			)
 
 		case "RankGetLeaderBoard":
 			d, e = RankGetLeaderBoard(
@@ -211,6 +215,8 @@ func doAfterReceivingMessage(connection *connections.Connection, message []byte)
 		case "StreamCreate":
 			d, e = StreamCreate(
 				connection.UserId,
+				m.ReadString(data, "StreamName"),
+				m.ReadString(data, "StreamImage"),
 			)
 		case "StreamFinish":
 			_ = 1
@@ -222,11 +228,15 @@ func doAfterReceivingMessage(connection *connections.Connection, message []byte)
 		case "StreamStopViewing":
 			_ = 1
 		case "StreamAllSummaries":
-			_ = 1
-		case "StreamDetail":
-			_ = 1
+			d, e = StreamAllSummaries()
+		case "StreamGetMyViewing":
+			d, e = StreamGetMyViewing(connection.UserId)
 		case "StreamReport":
-			_ = 1
+			d, e = StreamReport(
+				connection.UserId,
+				m.ReadInt64(data, "BroadcasterId"),
+				m.ReadString(data, "Reason"),
+			)
 
 		case "GameEggsCreateMatch":
 			d, e = GameEggsCreateMatch(connection.UserId)

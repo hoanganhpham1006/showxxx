@@ -2,6 +2,7 @@ package misc
 
 import (
 	"encoding/base64"
+	"fmt"
 	"time"
 )
 
@@ -15,8 +16,17 @@ func ReadString(data map[string]interface{}, field string) string {
 // get value from map field as float64
 func ReadFloat64(data map[string]interface{}, field string) float64 {
 	vi := data[field]
-	v, _ := vi.(float64)
-	return v
+	_ = fmt.Println
+	v, isOk := vi.(float64)
+	if isOk {
+		return v
+	}
+	v2, isOk := vi.(int64)
+	if isOk {
+		return float64(v2)
+	}
+	v3, _ := vi.(int)
+	return float64(v3)
 }
 
 // get value from map field as int64

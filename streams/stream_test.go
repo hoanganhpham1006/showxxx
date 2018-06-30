@@ -1,16 +1,19 @@
 package streams
 
 import (
+	//	"encoding/json"
 	"fmt"
 	"testing"
 	"time"
 
 	l "github.com/daominah/livestream/language"
+	"github.com/daominah/livestream/misc"
 )
 
 func Test01(t *testing.T) {
 	_ = fmt.Println
-	stream, e := CreateStream(2)
+	_ = time.Sleep
+	stream, e := CreateStream(2, "stream cua 2", "anh2")
 	if e != nil {
 		t.Error(e)
 	}
@@ -22,23 +25,35 @@ func Test01(t *testing.T) {
 		t.Error()
 	}
 	e = FinishStream(3)
-	fmt.Println("FinishStream(3) e", e)
 	if e.Error() != l.Get(l.M028StreamNotBroadcasting) {
 		t.Error()
 	}
-	_, e3 := ViewStream(4, 2)
+	_, e3 := ViewStream(6, 2)
 	_, e4 := ViewStream(5, 2)
 	e5 := ReportStream(5, 2, "Con gái đéo gì cởi trần")
-	e6 := StopViewingStream(5, 2)
-	fmt.Println("stream", stream)
+	e6 := StopViewingStream(5)
+	//	fmt.Println("stream", stream)
 	if e3 != nil || e4 != nil || e5 != nil || e6 != nil {
 		t.Error(e3, e4, e5, e6)
 	}
 	//
+	CreateStream(4, "stream cua 4", "anh4")
+	ViewStream(5, 4)
+	ViewStream(7, 4)
+	ViewStream(8, 4)
+	ViewStream(9, 4)
+	streams := StreamAllSummaries()
+	if misc.ReadFloat64(streams[0], "BroadcasterId") != 4 ||
+		misc.ReadFloat64(streams[0], "NViewers") != 5 {
+		t.Error()
+	}
+	//	fmt.Println("streams", streams)
+
 	e = FinishStream(2)
+	FinishStream(4)
 	if e != nil {
 		t.Error()
 	}
-	fmt.Println("FinishStream(2) e", e)
-	time.Sleep(200 * time.Microsecond)
+	//	fmt.Println("FinishStream(2) e", e)
+	time.Sleep(200 * time.Millisecond)
 }
