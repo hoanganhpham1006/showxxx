@@ -201,6 +201,9 @@ func StopViewingStream(viewerId int64) error {
 	viewer.StatusL1 = users.STATUS_ONLINE
 	viewer.StatusL2 = "{}"
 	conversations.RemoveMember(targetStream.ConversationId, viewerId)
+	if viewerId == targetStream.BroadcasterId {
+		FinishStream(targetStream.BroadcasterId)
+	}
 	return nil
 }
 
