@@ -172,6 +172,8 @@ func doAfterReceivingMessage(connection *connections.Connection, message []byte)
 				m.ReadString(data, "CheerMessage"),
 				m.ReadString(data, "Misc"), // json, ex: {"Description": "9x Mangoes"}
 			)
+		case "ConversationGifts":
+			d, e = ConversationGifts()
 
 		case "TeamCreate":
 			d, e = TeamCreate(

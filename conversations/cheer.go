@@ -65,3 +65,25 @@ func Cheer(conversation_id int64, cheerer_id int64, target_user_id int64,
 	CreateMessage(conversation_id, cheerer_id, cheer_info, DISPLAY_TYPE_CHEER)
 	return nil
 }
+
+func LoadGiftsList() ([]map[string]interface{}, error) {
+	rows, err := zdatabase.DbPool.Query(`SELECT id, name, val, image FROM gift`)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	gifts := make([]map[string]interface{}, 0)
+	for rows.Next() {
+		var id int64
+		var name, image string
+		var val float64
+		e := rows.Scan(&id, &name, &val, &image)
+		if e != nil {
+			return nil, err
+		}
+		gifts = append(gifts, map[string]interface{}{
+			"Id": id, "Name": name, "Val": val, "Image": image,
+		})
+	}
+	return gifts, nil
+}

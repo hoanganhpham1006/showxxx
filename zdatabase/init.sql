@@ -320,3 +320,17 @@ INSERT INTO public.gift (name, val) VALUES ('Firework', 100000);
 INSERT INTO public.gift (name, val) VALUES ('Champagne', 200000);
 INSERT INTO public.gift (name, val) VALUES ('Cigar', 500000);
 INSERT INTO public.gift (name, val) VALUES ('Sports car ', 1000000);
+
+CREATE TABLE stream_archive (
+    id BIGSERIAL, CONSTRAINT stream_archive_pkey PRIMARY KEY (id),
+    broadcaster_id BIGINT DEFAULT 0 REFERENCES public."user" (id),
+    started_time TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    finished_time TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    n_viewers BIGINT DEFAULT 0,
+    n_reports BIGINT DEFAULT 0,
+    viewers TEXT DEFAULT '[]',
+    reports TEXT DEFAULT '{}',
+    conversation_id BIGINT DEFAULT 0 REFERENCES public.conversation (id)
+);
+CREATE INDEX stream_archive_i01 ON public.stream_archive
+    using btree (broadcaster_id, started_time);

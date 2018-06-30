@@ -108,7 +108,7 @@ type User struct {
 
 	// StatusL1 will be assign in other packages
 	StatusL1 string
-	// json: {"Game": "GAME_TAIXIU"}, {"Video": 92}
+	// json: {"Game": "GAME_TAIXIU"}, {"BroadcasterId": 92}
 	StatusL2 string
 	//
 	Mutex sync.Mutex
@@ -211,6 +211,9 @@ func CreateUser(username string, password string) (int64, error) {
 // load user data from database to MapIdToUser, this map is only for caching,
 // this func creates new moneyType from MONEY_TYPES if necessary
 func LoadUser(id int64) (*User, error) {
+	if id == 0 {
+		return nil, errors.New(l.Get(l.M022InvalidUserId))
+	}
 	var username, role, real_name, national_id, sex, phone, email, country string
 	var address, profile_name, profile_image, summary, misc string
 	var is_suspended bool

@@ -13,27 +13,36 @@ import (
 	"github.com/daominah/livestream/misc"
 	"github.com/daominah/livestream/users"
 	"github.com/daominah/livestream/zconfig"
+	"github.com/daominah/livestream/zdatabase"
 )
 
 const (
-	COMMAND_NEW_VIEWER = "COMMAND_NEW_VIEWER"
+	COMMAND_NEW_VIEWER      = "COMMAND_NEW_VIEWER"
+	COMMAND_STREAM_FINISHED = "COMMAND_STREAM_FINISHED"
 )
 
 var MapUserIdToStream = make(map[int64]*Stream)
+
+// for read/write MapUserIdToStream, stream.ViewerIds, stream.MapUidToReport
 var GMutex sync.Mutex
+
+type Report struct {
+	UserId int64
+	Reason string
+}
 
 type Stream struct {
 	BroadcasterId  int64
 	StartedTime    time.Time
 	FinishedTime   time.Time
 	ViewerIds      []int64
+	MapUidToReport map[int64]*Report
 	ConversationId int64
-	Mutex          sync.Mutex
 }
 
 func (u *Stream) String() string {
-	u.Mutex.Lock()
-	defer u.Mutex.Unlock()
+	GMutex.Lock()
+	defer GMutex.Unlock()
 	bs, e := json.MarshalIndent(u, "", "    ")
 	if e != nil {
 		return "{}"
@@ -49,11 +58,11 @@ func (u *Stream) ToMap() map[string]interface{} {
 }
 
 func (u *Stream) writeMapToAllViewer(err error, data map[string]interface{}) {
-	u.Mutex.Lock()
+	GMutex.Lock()
 	for _, uid := range u.ViewerIds {
 		connections.WriteMapToUserId(uid, err, data)
 	}
-	u.Mutex.Unlock()
+	GMutex.Unlock()
 }
 
 func CreateStream(userId int64) (*Stream, error) {
@@ -90,39 +99,74 @@ func CreateStream(userId int64) (*Stream, error) {
 }
 
 func ViewStream(viewerId int64, broadcasterId int64) (*Stream, error) {
-	GMutex.Lock()
-	defer GMutex.Unlock()
-	if viewerId == 0 {
-		return nil, errors.New(l.Get(l.M022InvalidUserId))
+	viewer, e := users.GetUser(viewerId)
+	if viewer == nil {
+		return nil, e
 	}
+	GMutex.Lock()
 	targetStream := MapUserIdToStream[broadcasterId]
+	GMutex.Unlock()
 	if targetStream == nil {
 		return nil, errors.New(l.Get(l.M028StreamNotBroadcasting))
 	}
 	viewingStreamId := int64(0)
 	var viewingStream *Stream
+	GMutex.Lock()
 	for _, stream := range MapUserIdToStream {
-		stream.Mutex.Lock()
 		if misc.FindInt64InSlice(viewerId, stream.ViewerIds) != -1 {
 			viewingStreamId = stream.BroadcasterId
 		}
-		stream.Mutex.Unlock()
 		if viewingStreamId != 0 {
 			viewingStream = stream
 			break
 		}
 	}
+	GMutex.Unlock()
 	if viewingStreamId != 0 {
 		return viewingStream, fmt.Errorf("%v: %v", l.Get(l.M029StreamConcurrentView))
 	}
 	//
-	targetStream.Mutex.Lock()
+	GMutex.Lock()
 	targetStream.ViewerIds = append(targetStream.ViewerIds, viewerId)
-	targetStream.Mutex.Unlock()
+	GMutex.Unlock()
+	viewer.StatusL1 = users.STATUS_WATCHING
+	viewer.StatusL2 = fmt.Sprintf(`{"BroadcasterId": %v}`, broadcasterId)
 	conversations.AddMember(targetStream.ConversationId, viewerId, false)
 	targetStream.writeMapToAllViewer(nil, map[string]interface{}{
 		"Command":     COMMAND_NEW_VIEWER,
 		"NewViewerId": viewerId,
 	})
 	return targetStream, nil
+}
+
+func FinishStream(broadcasterId int64) error {
+	GMutex.Lock()
+	defer GMutex.Unlock()
+	stream := MapUserIdToStream[broadcasterId]
+	if stream == nil {
+		return errors.New(l.Get(l.M028StreamNotBroadcasting))
+	}
+	stream.writeMapToAllViewer(nil, map[string]interface{}{
+		"Command":       COMMAND_STREAM_FINISHED,
+		"BroadcasterId": stream.BroadcasterId,
+	})
+	stream.FinishedTime = time.Now()
+	// TODO: users.MT_BROADCAST_DURATION
+	delete(MapUserIdToStream, broadcasterId)
+	nViewers := len(stream.ViewerIds)
+	nReports := len(stream.MapUidToReport)
+	viewersB, _ := json.Marshal(stream.ViewerIds)
+	reportsB, _ := json.Marshal(stream.MapUidToReport)
+	go func() {
+		zdatabase.DbPool.Exec(
+			`INSERT INTO stream_archive
+    			(broadcaster_id, started_time, finished_time,
+    			n_viewers, n_reports, viewers, reports, conversation_id)
+        	VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`,
+			stream.BroadcasterId, stream.StartedTime, stream.FinishedTime,
+			nViewers, nReports, string(viewersB), string(reportsB),
+			stream.ConversationId,
+		)
+	}()
+	return nil
 }

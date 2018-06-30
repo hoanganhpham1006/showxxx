@@ -277,6 +277,14 @@ func Cheer(conversation_id int64, cheerer_id int64, target_user_id int64,
 	return nil, err
 }
 
+func ConversationGifts() (map[string]interface{}, error) {
+	gifts, e := conversations.LoadGiftsList()
+	if e != nil {
+		return nil, e
+	}
+	return map[string]interface{}{"Gifts": gifts}, nil
+}
+
 func TeamCreate(
 	createrId int64, teamName string, teamImage string, teamSummary string) (
 	map[string]interface{}, error) {

@@ -30,7 +30,7 @@ func Test01(t *testing.T) {
 		t.Error()
 	}
 	conv.Mutex.Unlock()
-	fmt.Println(conv.String())
+	//	fmt.Println(conv.String())
 
 	e = CreateMessage(cid, 3, "Uh nghe roi, tao 3 nay", DISPLAY_TYPE_NORMAL)
 	conv.Mutex.Lock()
@@ -130,4 +130,8 @@ func Test03(t *testing.T) {
 		t.Error(u1.MapMoney[users.MT_CASH], u2.MapMoney[users.MT_CASH],
 			u3.MapMoney[users.MT_CASH], u4.MapMoney[users.MT_CASH])
 	}
+}
+
+func Test04(t *testing.T) {
+	fmt.Println(LoadGiftsList())
 }
