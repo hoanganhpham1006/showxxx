@@ -9,7 +9,7 @@ import (
 	//	m "github.com/daominah/livestream/misc"
 	"github.com/daominah/livestream/connections"
 	"github.com/daominah/livestream/conversations"
-	//	"github.com/daominah/livestream/games/singleplayer/eggs"
+	"github.com/daominah/livestream/games/singleplayer/egg"
 	l "github.com/daominah/livestream/language"
 	"github.com/daominah/livestream/rank"
 	"github.com/daominah/livestream/streams"
@@ -399,15 +399,48 @@ func StreamReport(viewerId int64, broadcasterId int64, reason string) (
 	return nil, err
 }
 
-func GameEggsCreateMatch(userId int64) (
+func SGameChooseMoneyType(gameCode string, userId int64, moneyType string) (
 	map[string]interface{}, error) {
+	game := MapSGames[gameCode]
+	if game == nil {
+		return nil, errors.New(l.Get(l.M035GameInvalidGameCode))
+	}
+	game.ChooseMoneyType(userId, moneyType)
 	return nil, nil
 }
-func GameEggsBreak(userId int64, data map[string]interface{}, args ...interface{}) (
+
+func SGameChooseBaseMoney(gameCode string, userId int64, baseMoney float64) (
 	map[string]interface{}, error) {
+	game := MapSGames[gameCode]
+	if game == nil {
+		return nil, errors.New(l.Get(l.M035GameInvalidGameCode))
+	}
+	game.ChooseBaseMoney(userId, baseMoney)
 	return nil, nil
 }
-func GameEggsGetMatchDetail(userId int64) (
+func SGameGetPlayingMatch(gameCode string, userId int64) (
 	map[string]interface{}, error) {
-	return nil, nil
+	game := MapSGames[gameCode]
+	if game == nil {
+		return nil, errors.New(l.Get(l.M035GameInvalidGameCode))
+	}
+	match := game.GetPlayingMatch(userId)
+	if match == nil {
+		return nil, errors.New(l.Get(l.M037GameInvalidMatchId))
+	}
+	return match.ToMap(), nil
+}
+func SGameEggSendMove(
+	userId int64, data map[string]interface{}, args ...interface{}) (
+	map[string]interface{}, error) {
+	game := MapSGames[egg.GAME_CODE_EGG]
+	if game == nil {
+		return nil, errors.New(l.Get(l.M035GameInvalidGameCode))
+	}
+	match := game.GetPlayingMatch(userId)
+	if match == nil {
+		return nil, errors.New(l.Get(l.M037GameInvalidMatchId))
+	}
+	err := match.SendMove(data)
+	return nil, err
 }

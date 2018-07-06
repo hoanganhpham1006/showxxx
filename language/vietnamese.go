@@ -42,5 +42,11 @@ func init() {
 		M028StreamNotBroadcasting:     "Người bạn muốn xem đang không phát sóng",
 		M029StreamConcurrentView:      "Bạn chỉ có thể xem một người tại một thời điểm",
 		M032StreamOnlyViewerCanReport: "Phải là người xem mới được báo cáo vi phạm",
+
+		M033GameNeedToChooseMoneyType: "M033GameNeedToChooseMoneyType",
+		M034GameInvalidBaseMoney:      "M034GameInvalidBaseMoney",
+		M035GameInvalidGameCode:       "M035GameInvalidGameCode",
+		M036GameOnlyOneMatchAtATime:   "M036GameOnlyOneMatchAtATime",
+		M037GameInvalidMatchId:        "M037GameInvalidMatchId",
 	}
 }

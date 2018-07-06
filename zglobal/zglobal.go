@@ -19,6 +19,8 @@ var CheerTeamCaptainProfit float64
 
 var MessageBigCost float64
 
+var GameEggPayoutRate float64
+
 func init() {
 	// default values
 	ExVar1Default := map[string]int64{"a": 1, "b": 2}
@@ -28,6 +30,8 @@ func init() {
 	CheerTeamCaptainProfitDefault := float64(0.05)
 
 	MessageBigCostDefault := float64(1000)
+
+	GameEggPayoutRateDefault := float64(0.90)
 
 	// loop update values
 	go func() {
@@ -85,7 +89,16 @@ func init() {
 				temp := fmt.Sprintf("%v", MessageBigCostDefault)
 				zdatabase.SaveGlobalVar(key, temp)
 			}
-
+			//
+			key = "GameEggPayoutRate"
+			value = zdatabase.LoadGlobalVar(key)
+			GameEggPayoutRate, err = strconv.ParseFloat(value, 64)
+			if err != nil {
+				fmt.Println("zglobal err", key, err)
+				GameEggPayoutRate = GameEggPayoutRateDefault
+				temp := fmt.Sprintf("%v", GameEggPayoutRateDefault)
+				zdatabase.SaveGlobalVar(key, temp)
+			}
 			//
 			time.Sleep(5 * time.Second)
 		}

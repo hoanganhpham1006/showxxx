@@ -30,18 +30,6 @@ func init() {
 	MapConnection = make(map[int64]*Connection)
 }
 
-func tPrint(a ...interface{}) {
-	if zconfig.IsDeveloping {
-		fmt.Println(a...)
-	}
-}
-
-func tPrintf(format string, a ...interface{}) {
-	if zconfig.IsDeveloping {
-		fmt.Printf(format, a...)
-	}
-}
-
 // ListenAndServe listens on a tcp port and upgrate connections to websocket,
 // already run in a goroutine,
 func ListenAndServe(
@@ -74,7 +62,7 @@ func ListenAndServe(
 		c := CreateConnection(ws)
 		go c.readPump(doAfterReceivingMessage, doAfterClosingConnection)
 		go c.writePump(doAfterClosingConnection)
-		tPrint("Connection created: ", c.WsConn.RemoteAddr(), c)
+		zconfig.TPrint("Connection created: ", c.WsConn.RemoteAddr(), c)
 	})
 }
 
@@ -104,7 +92,7 @@ func (c *Connection) readPump(
 	doAfterReceivingMessage func(*Connection, []byte),
 	doAfterClosingConnection func(*Connection),
 ) {
-	defer tPrint("Connection readPump ended", c.WsConn.RemoteAddr(), c)
+	defer zconfig.TPrint("Connection readPump ended", c.WsConn.RemoteAddr(), c)
 	c.WsConn.SetReadLimit(zconfig.WebsocketMaxMessageSize)
 	c.WsConn.SetReadDeadline(time.Now().Add(zconfig.WebsocketReadWait))
 	c.WsConn.SetPongHandler(func(string) error {
@@ -115,14 +103,14 @@ func (c *Connection) readPump(
 		messageType, message, err := c.WsConn.ReadMessage()
 		_ = messageType //
 		if err != nil {
-			tPrint("WsConn.ReadMessage err", err)
+			zconfig.TPrint("WsConn.ReadMessage err", err)
 			c.WsConn.Close()
 			if doAfterClosingConnection != nil {
 				doAfterClosingConnection(c)
 			}
 			return
 		} else {
-			tPrintf("Connection readPump message %v %v:\n%v\n",
+			zconfig.TPrintf("Connection readPump message %v %v:\n%v\n",
 				time.Now(), c.WsConn.RemoteAddr(), string(message))
 		}
 		if doAfterReceivingMessage != nil {
@@ -133,7 +121,7 @@ func (c *Connection) readPump(
 
 // doAfterClosingConnection: change MapConnection, update  user online record
 func (c *Connection) writePump(doAfterClosingConnection func(*Connection)) {
-	defer tPrint("Connection writePump ended", c)
+	defer zconfig.TPrint("Connection writePump ended", c)
 	ticker := time.NewTicker(zconfig.WebsocketPingPeriod)
 	defer func() { ticker.Stop() }()
 	for {
@@ -143,7 +131,7 @@ func (c *Connection) writePump(doAfterClosingConnection func(*Connection)) {
 			c.WsConn.SetWriteDeadline(time.Now().Add(zconfig.WebsocketWriteWait))
 			writeErr = c.WsConn.WriteMessage(websocket.TextMessage, message)
 			if writeErr == nil {
-				tPrintf("Connection writePump message %v %v:\n%v\n",
+				zconfig.TPrintf("Connection writePump message %v %v:\n%v\n",
 					time.Now(), c.WsConn.RemoteAddr(), string(message))
 			}
 		case <-ticker.C:
@@ -158,7 +146,7 @@ func (c *Connection) writePump(doAfterClosingConnection func(*Connection)) {
 			if doAfterClosingConnection != nil {
 				doAfterClosingConnection(c)
 			}
-			tPrint("WsConn.WriteMessage err", writeErr)
+			zconfig.TPrint("WsConn.WriteMessage err", writeErr)
 			return
 		}
 	}

@@ -45,6 +45,12 @@ const (
 	M028StreamNotBroadcasting     = "M028StreamNotBroadcasting"
 	M029StreamConcurrentView      = "M029StreamConcurrentView"
 	M032StreamOnlyViewerCanReport = "M032StreamOnlyViewerCanReport"
+
+	M033GameNeedToChooseMoneyType = "M033GameNeedToChooseMoneyType"
+	M034GameInvalidBaseMoney      = "M034GameInvalidBaseMoney"
+	M035GameInvalidGameCode       = "M035GameInvalidGameCode"
+	M036GameOnlyOneMatchAtATime   = "M036GameOnlyOneMatchAtATime"
+	M037GameInvalidMatchId        = "M037GameInvalidMatchId"
 )
 
 // map msgName to msgContent

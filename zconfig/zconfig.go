@@ -11,6 +11,7 @@ const (
 	PostgresPassword     = "123qwe"
 	PostgresDatabaseName = "live_stream"
 	PostgresAddress      = "127.0.0.1:5432"
+	//	PostgresAddress = "127.0.0.1:12354"
 
 	PostgresInitTablesFile = "/home/tungdt/go/src/github.com/daominah/livestream/zdatabase/init.sql"
 
@@ -49,4 +50,16 @@ func init() {
 	_ = fmt.Println
 	// fmt.Println("DefaultFutureTime", DefaultFutureTime)
 	Test += 5
+}
+
+func TPrint(a ...interface{}) {
+	if IsDeveloping {
+		fmt.Println(a...)
+	}
+}
+
+func TPrintf(format string, a ...interface{}) {
+	if IsDeveloping {
+		fmt.Printf(format, a...)
+	}
 }

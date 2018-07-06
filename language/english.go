@@ -42,5 +42,11 @@ func init() {
 		M028StreamNotBroadcasting:     "Broadcaster is not broadcasting",
 		M029StreamConcurrentView:      "You can only view one broadcaster at a time",
 		M032StreamOnlyViewerCanReport: "Only viewer can report",
+
+		M033GameNeedToChooseMoneyType: "M033GameNeedToChooseMoneyType",
+		M034GameInvalidBaseMoney:      "M034GameInvalidBaseMoney",
+		M035GameInvalidGameCode:       "M035GameInvalidGameCode",
+		M036GameOnlyOneMatchAtATime:   "M036GameOnlyOneMatchAtATime",
+		M037GameInvalidMatchId:        "M037GameInvalidMatchId",
 	}
 }

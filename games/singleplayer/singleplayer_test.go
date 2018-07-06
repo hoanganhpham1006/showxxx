@@ -1,11 +1,16 @@
 package singleplayer
 
 import (
-	"fmt"
 	"testing"
 )
 
 func Test01(t *testing.T) {
-	_ = fmt.Println
-	fmt.Println("hihi")
+	game := &Game{}
+	game.Init("slot")
+	match := &Match{}
+	game.InitMatch(2, match)
+	e := match.Archive()
+	if e != nil {
+		t.Error(e)
+	}
 }

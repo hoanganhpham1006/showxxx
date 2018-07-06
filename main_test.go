@@ -3,7 +3,7 @@ package main
 import (
 	"fmt"
 	"testing"
-	//	"time"
+	"time"
 
 	"github.com/gorilla/websocket"
 
@@ -23,15 +23,26 @@ func Test02(t *testing.T) {
 	}
 	c := connections.CreateConnection(wsConn)
 	c.TestingStart()
-	for i := 50; i < 1000; i++ {
-		c.WriteMap(nil, map[string]interface{}{
-			"Command":    "UserCreate",
-			"Username":   fmt.Sprintf("thuy%v", i),
-			"Password":   "123qwe",
-			"DeviceName": "LinuxMint18",
-			"AppName":    "Eclipse",
-		})
-	}
+	//	for i := 50; i < 1000; i++ {
+	//		c.WriteMap(nil, map[string]interface{}{
+	//			"Command":    "UserCreate",
+	//			"Username":   fmt.Sprintf("thuy%v", i),
+	//			"Password":   "123qwe",
+	//			"DeviceName": "LinuxMint18",
+	//			"AppName":    "Eclipse",
+	//		})
+	//	}
+
+	c.WriteMap(nil, map[string]interface{}{
+		"Command":      "UserLoginByCookie",
+		"LoginSession": "7b226c6f67696e54696d65223a22323031382d30372d30325430393a31363a33302e3738303231353334362b30373a3030222c22757365724964223a223134227d",
+	})
+	time.Sleep(200 * time.Millisecond)
+	c.WriteMap(nil, map[string]interface{}{
+		"Command":        "ConversationCreateMessage",
+		"ConversationId": 1,
+		"MessageContent": "hohohaha",
+	})
 
 	select {}
 }

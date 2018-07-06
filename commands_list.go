@@ -238,16 +238,30 @@ func doAfterReceivingMessage(connection *connections.Connection, message []byte)
 				m.ReadString(data, "Reason"),
 			)
 
-		case "GameEggsCreateMatch":
-			d, e = GameEggsCreateMatch(connection.UserId)
-		case "GameEggsBreak":
-			d, e = GameEggsBreak(
+			//		case "SGameChooseMoneyType":
+			//			d, e = SGameChooseMoneyType(
+			//				m.ReadString(data, "GameCode"), // "egg", ..
+			//				connection.UserId,
+			//				m.ReadString(data, "MoneyType"), // MT_CASH
+			//			)
+		case "SGameChooseBaseMoney":
+			d, e = SGameChooseBaseMoney(
+				m.ReadString(data, "GameCode"), // "egg", ..
+				connection.UserId,
+				m.ReadFloat64(data, "BaseMoney"), // 100, 1000, 2000,..
+			)
+		case "SGameGetPlayingMatch":
+			d, e = SGameGetPlayingMatch(
+				m.ReadString(data, "GameCode"),
+				connection.UserId,
+			)
+
+		case "SGameEggSendMove":
+			d, e = SGameEggSendMove(
 				connection.UserId,
 				data,
-				m.ReadInt64(data, "HammerType"), // 0,1,2,3
+				m.ReadInt64(data, "HammerIndex"),
 			)
-		case "GameEggsGetMatchDetail":
-			d, e = GameEggsGetMatchDetail(connection.UserId)
 
 		default:
 			d = map[string]interface{}{"message": string(message)}

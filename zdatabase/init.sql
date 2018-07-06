@@ -336,3 +336,16 @@ CREATE TABLE stream_archive (
 );
 CREATE INDEX stream_archive_i01 ON public.stream_archive
     using btree (broadcaster_id, started_time);
+
+CREATE TABLE match_single (
+    id TEXT, CONSTRAINT match_single_pkey PRIMARY KEY (id),
+    game_code TEXT DEFAULT '',
+    user_id BIGINT DEFAULT 0 REFERENCES public."user" (id),
+    started_time TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    money_type TEXT DEFAULT '',
+    base_money DOUBLE PRECISION DEFAULT 0,
+    result_changed_money DOUBLE PRECISION DEFAULT 0,
+    result_detail       TEXT DEFAULT ''
+);
+CREATE INDEX match_single_i01 ON public.match_single
+    USING btree (game_code, user_id, started_time);

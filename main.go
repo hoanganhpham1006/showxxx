@@ -14,10 +14,15 @@ import (
 	"github.com/daominah/livestream/zdatabase"
 	//	"github.com/daominah/livestream/zglobal"
 	"github.com/daominah/livestream/admintool"
+	"github.com/daominah/livestream/games/singleplayer"
+	"github.com/daominah/livestream/games/singleplayer/egg"
 	"github.com/daominah/livestream/misc"
 	"github.com/daominah/livestream/rank"
 	"github.com/daominah/livestream/streams"
 )
+
+// read only map
+var MapSGames = make(map[string]singleplayer.GameInterface)
 
 func init() {
 	fmt.Println("")
@@ -35,6 +40,12 @@ func main() {
 	zdatabase.InitTables()
 
 	//
+	MapSGames[egg.GAME_CODE_EGG] = &egg.EggGame{}
+	for gameCode, game := range MapSGames {
+		game.Init(gameCode)
+	}
+
+	// listen to clients
 	connections.ListenAndServe(doAfterReceivingMessage, doAfterClosingConnection)
 	streams.ForwarderListenAndServer()
 	admintool.ListenAndServe()
