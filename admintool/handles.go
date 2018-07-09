@@ -40,7 +40,7 @@ func UserLogin(r *http.Request, w http.ResponseWriter, p martini.Params) string 
 		return ""
 	}
 	w.Header().Set("Set-Cookie", fmt.Sprintf("login_session=%v", cookie))
-	return ""
+	return user.String()
 }
 
 func checkIsAdmin(r *http.Request) error {
