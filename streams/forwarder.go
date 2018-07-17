@@ -105,11 +105,11 @@ func ForwarderListenAndServer() {
 	serveMux.Handle("/socket.io/", server)
 	go func() {
 		fmt.Printf("Listening socketIo on address host%v/socket.io/\n",
-			zconfig.SocketIoPort)
-		err := http.ListenAndServe(zconfig.SocketIoPort, serveMux)
+			zconfig.WebRTCSignalingPort)
+		err := http.ListenAndServe(zconfig.WebRTCSignalingPort, serveMux)
 		if err != nil {
 			fmt.Printf("Fail to listen socketIo on address host%v/socket.io/\n %v\n",
-				zconfig.SocketIoPort, err.Error())
+				zconfig.WebRTCSignalingPort, err.Error())
 		}
 	}()
 }

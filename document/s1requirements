@@ -1,5 +1,13 @@
-Connection websocket
-    If a new connection authenticate by a userId the same as old connection: close the old connection.
+Connection
+    Client connects to proxy
+        Limit number of connections per address
+        Limit number of request pers connection in a duration.
+        Map userId to (logged in connection).
+    Proxy forwards data/disconnect to main server
+        Server exchane data with a proxy by a connections pool. 
+        Server send msg by userId: Map[userId]proxy
+    If a new connection authenticate by a userId the same as old connection:
+        close the old connection.
 
 User
     Create user

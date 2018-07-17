@@ -9,7 +9,6 @@ import (
 	_ "net/http/pprof"
 	"runtime"
 
-	"github.com/daominah/livestream/connections"
 	"github.com/daominah/livestream/zconfig"
 	"github.com/daominah/livestream/zdatabase"
 	//	"github.com/daominah/livestream/zglobal"
@@ -17,6 +16,7 @@ import (
 	"github.com/daominah/livestream/games/singleplayer"
 	"github.com/daominah/livestream/games/singleplayer/egg"
 	"github.com/daominah/livestream/misc"
+	"github.com/daominah/livestream/nbackend"
 	"github.com/daominah/livestream/rank"
 	"github.com/daominah/livestream/streams"
 )
@@ -32,7 +32,7 @@ func init() {
 func main() {
 	// app profile: memory, inused objects, goroutines...
 	go func() {
-		log.Println(http.ListenAndServe("localhost"+zconfig.ProfilePort, nil))
+		log.Println(http.ListenAndServe("localhost"+zconfig.BackendProfilePort, nil))
 	}()
 	runtime.SetBlockProfileRate(1)
 
@@ -46,7 +46,7 @@ func main() {
 	}
 
 	// listen to clients
-	connections.ListenAndServe(doAfterReceivingMessage, doAfterClosingConnection)
+	nbackend.InitBackend(doAfterReceivingMessage)
 	streams.ForwarderListenAndServer()
 	admintool.ListenAndServe()
 

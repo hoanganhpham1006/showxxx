@@ -4,12 +4,13 @@ import (
 	"encoding/json"
 	"errors"
 
-	"github.com/daominah/livestream/connections"
 	l "github.com/daominah/livestream/language"
 	m "github.com/daominah/livestream/misc"
+	"github.com/daominah/livestream/nbackend"
+	"github.com/daominah/livestream/nwebsocket"
 )
 
-func doAfterReceivingMessage(connection *connections.Connection, message []byte) {
+func doAfterReceivingMessage(connection *nwebsocket.Connection, message []byte) {
 	var data map[string]interface{}
 	parseTextErr := json.Unmarshal(message, &data)
 	if parseTextErr != nil {
@@ -18,17 +19,25 @@ func doAfterReceivingMessage(connection *connections.Connection, message []byte)
 		return
 	}
 
+	proxyId := m.ReadInt64(data, "ProxyId")
+	userId := m.ReadInt64(data, "UserId")
+	clientConnId := m.ReadInt64(data, "ConnId")
+	clientIp := m.ReadString(data, "ClientIpAddr")
+
 	command := m.ReadString(data, "Command")
 	// unique id has been created by client that help to identify response
 	// belong to what request
 	commandId := m.ReadInt64(data, "CommandId")
+
 	// responseData
 	var d map[string]interface{}
 	// responseError
 	var e error
 
-	if connection.UserId == 0 { // not logged in
+	if userId == 0 { // not logged in
 		switch command {
+		case "ProxyConnect": // exclusive command of proxies
+			nbackend.GBackend.HandleProxyConnect(proxyId, connection)
 		case "UserCreate":
 			d, e = UserCreate(
 				m.ReadString(data, "Username"),
@@ -36,7 +45,7 @@ func doAfterReceivingMessage(connection *connections.Connection, message []byte)
 		case "UserLoginByPassword":
 			d, e = UserLogin(
 				LOGIN_BY_PASSWORD,
-				connection,
+				proxyId, clientConnId, clientIp,
 				m.ReadString(data, "Username"),
 				m.ReadString(data, "Password"),
 				"",
@@ -45,7 +54,7 @@ func doAfterReceivingMessage(connection *connections.Connection, message []byte)
 		case "UserLoginByCookie":
 			d, e = UserLogin(
 				LOGIN_BY_COOKIE,
-				connection,
+				proxyId, clientConnId, clientIp,
 				"",
 				"",
 				m.ReadString(data, "LoginSession"),
@@ -58,6 +67,8 @@ func doAfterReceivingMessage(connection *connections.Connection, message []byte)
 		}
 	} else { // logged in
 		switch command {
+		case "DisconnectFromClient": // exclusive command of proxies
+			HandleClientDisconnect(userId, m.ReadInt64(data, "LoginId"))
 		case "UserDetail":
 			d, e = UserDetail(
 				m.ReadInt64(data, "UserId"))
@@ -69,20 +80,20 @@ func doAfterReceivingMessage(connection *connections.Connection, message []byte)
 				m.ReadInt64(data, "UserId"))
 		case "UserFollow":
 			d, e = UserFollow(
-				connection.UserId,
+				userId,
 				m.ReadInt64(data, "TargetId"))
 		case "UserUnfollow":
 			d, e = UserUnfollow(
-				connection.UserId,
+				userId,
 				m.ReadInt64(data, "TargetId"))
 		case "UserCheckFollowing":
 			d, e = UserCheckFollowing(
-				connection.UserId,
+				userId,
 				m.ReadInt64(data, "TargetId"),
 			)
 		case "UserViewMoneyLog":
 			d, e = UserViewMoneyLog(
-				connection.UserId,
+				userId,
 				m.ReadTime(data, "FromTime"),
 				m.ReadTime(data, "ToTime"))
 		case "UserSearch":
@@ -91,7 +102,7 @@ func doAfterReceivingMessage(connection *connections.Connection, message []byte)
 			)
 		case "UserChangeInfo":
 			d, e = UserChangeInfo(
-				connection.UserId,
+				userId,
 				m.ReadString(data, "RealName"),
 				m.ReadString(data, "NationalId"),
 				m.ReadString(data, "Sex"),
@@ -103,7 +114,7 @@ func doAfterReceivingMessage(connection *connections.Connection, message []byte)
 			)
 		case "UserChangeProfileImage":
 			d, e = UserChangeProfileImage(
-				connection.UserId,
+				userId,
 				m.ReadBytes(data, "ImageBase64"),
 			)
 		case "UploadFile":
@@ -118,58 +129,58 @@ func doAfterReceivingMessage(connection *connections.Connection, message []byte)
 
 		case "ConversationAllSummaries":
 			d, e = ConversationAllSummaries(
-				connection.UserId,
+				userId,
 				m.ReadString(data, "Filter"), // FILTER_ALL, FILTER_UNREAD, FILTER_PAIR
 				int(m.ReadFloat64(data, "NConversation")))
 		case "ConversationDetail":
 			d, e = ConversationDetail(
-				connection.UserId,
+				userId,
 				m.ReadInt64(data, "ConversationId"))
 		case "ConversationCreate":
 			d, e = ConversationCreate(
-				connection.UserId,
+				userId,
 				m.ReadInt64(data, "RecipientId"),
 			)
 		case "ConversationCreateMessage":
 			d, e = ConversationCreateMessage(
 				m.ReadInt64(data, "ConversationId"),
-				connection.UserId,
+				userId,
 				m.ReadString(data, "MessageContent"))
 		case "ConversationCreateBigMessage":
 			d, e = ConversationCreateBigMessage(
 				m.ReadInt64(data, "ConversationId"),
-				connection.UserId,
+				userId,
 				m.ReadString(data, "MessageContent"))
 		case "ConversationAddMember":
 			d, e = ConversationAddMember(
-				connection.UserId,
+				userId,
 				m.ReadInt64(data, "ConversationId"),
 				m.ReadInt64(data, "NewMemberId"),
 				m.ReadBool(data, "IsModerator"))
 		case "ConversationRemoveMember":
 			d, e = ConversationRemoveMember(
-				connection.UserId,
+				userId,
 				m.ReadInt64(data, "ConversationId"),
 				m.ReadInt64(data, "MemberId"))
 		case "ConversationBlockMember":
 			d, e = ConversationBlockMember(
-				connection.UserId,
+				userId,
 				m.ReadInt64(data, "ConversationId"),
 				m.ReadInt64(data, "MemberId"))
 		case "ConversationMute":
 			d, e = ConversationMute(
-				connection.UserId,
+				userId,
 				m.ReadInt64(data, "ConversationId"))
 		case "ConversationMarkMessage":
 			d, e = ConversationMarkMessage(
-				connection.UserId,
+				userId,
 				m.ReadInt64(data, "MessageId"),
 				m.ReadBool(data, "HasSeen"))
 
 		case "Cheer":
 			d, e = Cheer(
 				m.ReadInt64(data, "ConversationId"),
-				connection.UserId,
+				userId,
 				m.ReadInt64(data, "TargetUserId"),
 				m.ReadString(data, "CheerType"), // CHEER_FOR_TEAM, CHEER_FOR_USER
 				m.ReadFloat64(data, "Value"),
@@ -181,7 +192,7 @@ func doAfterReceivingMessage(connection *connections.Connection, message []byte)
 
 		case "TeamCreate":
 			d, e = TeamCreate(
-				connection.UserId,
+				userId,
 				m.ReadString(data, "TeamName"),
 				m.ReadString(data, "TeamImage"),
 				m.ReadString(data, "TeamSummary"),
@@ -196,14 +207,14 @@ func doAfterReceivingMessage(connection *connections.Connection, message []byte)
 			)
 		case "TeamRemoveMember":
 			d, e = TeamRemoveMember(
-				connection.UserId,
+				userId,
 				m.ReadInt64(data, "TeamId"),
 				m.ReadInt64(data, "UserId"),
 			)
 		case "TeamRequestJoin":
 			d, e = TeamRequestJoin(
 				m.ReadInt64(data, "TeamId"),
-				connection.UserId,
+				userId,
 			)
 		case "TeamHandleJoiningRequest":
 			d, e = TeamHandleJoiningRequest(
@@ -214,7 +225,7 @@ func doAfterReceivingMessage(connection *connections.Connection, message []byte)
 
 			//		case "StreamCreate":
 			//			d, e = StreamCreate(
-			//				connection.UserId,
+			//				userId,
 			//				m.ReadString(data, "StreamName"),
 			//				m.ReadString(data, "StreamImage"),
 			//			)
@@ -222,7 +233,7 @@ func doAfterReceivingMessage(connection *connections.Connection, message []byte)
 			//			_ = 1
 			//		case "StreamView":
 			//			d, e = StreamView(
-			//				connection.UserId,
+			//				userId,
 			//				m.ReadInt64(data, "BroadcasterId"),
 			//			)
 			//		case "StreamStopViewing":
@@ -230,10 +241,10 @@ func doAfterReceivingMessage(connection *connections.Connection, message []byte)
 		case "StreamAllSummaries":
 			d, e = StreamAllSummaries()
 		case "StreamGetMyViewing":
-			d, e = StreamGetMyViewing(connection.UserId)
+			d, e = StreamGetMyViewing(userId)
 		case "StreamReport":
 			d, e = StreamReport(
-				connection.UserId,
+				userId,
 				m.ReadInt64(data, "BroadcasterId"),
 				m.ReadString(data, "Reason"),
 			)
@@ -241,24 +252,24 @@ func doAfterReceivingMessage(connection *connections.Connection, message []byte)
 			//		case "SGameChooseMoneyType":
 			//			d, e = SGameChooseMoneyType(
 			//				m.ReadString(data, "GameCode"), // "egg", ..
-			//				connection.UserId,
+			//				userId,
 			//				m.ReadString(data, "MoneyType"), // MT_CASH
 			//			)
 		case "SGameChooseBaseMoney":
 			d, e = SGameChooseBaseMoney(
 				m.ReadString(data, "GameCode"), // "egg", ..
-				connection.UserId,
+				userId,
 				m.ReadFloat64(data, "BaseMoney"), // 100, 1000, 2000,..
 			)
 		case "SGameGetPlayingMatch":
 			d, e = SGameGetPlayingMatch(
 				m.ReadString(data, "GameCode"),
-				connection.UserId,
+				userId,
 			)
 
 		case "SGameEggSendMove":
 			d, e = SGameEggSendMove(
-				connection.UserId,
+				userId,
 				data,
 				m.ReadInt64(data, "HammerIndex"),
 			)
@@ -273,5 +284,9 @@ func doAfterReceivingMessage(connection *connections.Connection, message []byte)
 	}
 	d["Command"] = command
 	d["CommandId"] = commandId
+	d["ConnId"] = clientConnId
+	if _, isIn := d["UserId"]; !isIn {
+		d["UserId"] = userId
+	}
 	connection.WriteMap(e, d)
 }

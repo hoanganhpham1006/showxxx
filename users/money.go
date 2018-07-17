@@ -104,7 +104,7 @@ func changeUserMoney(
 			return -1, err, nil
 		}
 	}
-	{
+	if moneyType != MT_ONLINE_DURATION && moneyType != MT_BROADCAST_DURATION {
 		stmt, err := tx.Prepare(
 			`INSERT INTO user_money_log
 			(user_id, money_type, changed_val, money_before, money_after, reason)

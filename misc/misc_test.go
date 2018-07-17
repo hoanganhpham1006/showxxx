@@ -3,11 +3,13 @@ package misc
 import (
 	"encoding/json"
 	"fmt"
+	"math/rand"
 	"testing"
-	//	"time"
+	"time"
 )
 
 func Test01(t *testing.T) {
+	rand.Seed(time.Now().Unix())
 	_ = fmt.Println
 	type Case struct {
 		Slice0  []int64
@@ -113,4 +115,13 @@ func Test05(t *testing.T) {
 		(list.Elements[2] == "9")) {
 		t.Error(list)
 	}
+}
+
+func Test06(t *testing.T) {
+	list := []int64{10, 11, 12, 13, 14, 15, 16, 17}
+	for i := 0; i < 10; i++ {
+		//		fmt.Println(ChoiceInt64s(list))
+	}
+	list = []int64{}
+	_ = ChoiceInt64s(list)
 }

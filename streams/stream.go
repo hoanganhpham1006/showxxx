@@ -8,9 +8,9 @@ import (
 	"sync"
 	"time"
 
-	"github.com/daominah/livestream/connections"
 	"github.com/daominah/livestream/conversations"
 	l "github.com/daominah/livestream/language"
+	"github.com/daominah/livestream/nbackend"
 	//	"github.com/daominah/livestream/misc"
 	"github.com/daominah/livestream/users"
 	"github.com/daominah/livestream/zconfig"
@@ -63,7 +63,7 @@ func (u *Stream) ToMap() map[string]interface{} {
 // need Mutex.Lock() before call this func
 func (u *Stream) writeMapToAllViewer(err error, data map[string]interface{}) {
 	for uid, _ := range u.ViewerIds {
-		connections.WriteMapToUserId(uid, err, data)
+		nbackend.WriteMapToUserId(uid, err, data)
 	}
 }
 

@@ -7,9 +7,9 @@ import (
 	"errors"
 	"time"
 
-	"github.com/daominah/livestream/connections"
 	"github.com/daominah/livestream/games/singleplayer"
 	"github.com/daominah/livestream/misc"
+	"github.com/daominah/livestream/nbackend"
 	"github.com/daominah/livestream/users"
 	"github.com/daominah/livestream/zconfig"
 	"github.com/daominah/livestream/zglobal"
@@ -72,7 +72,7 @@ func (match *EggMatch) UpdateMatch(command string) {
 	data["Command"] = command
 	data["TurnRemainingSeconds"] =
 		match.TurnStartedTime.Add(DURATION_TURN).Sub(time.Now()).Seconds()
-	connections.WriteMapToUserId(match.UserId, nil, data)
+	nbackend.WriteMapToUserId(match.UserId, nil, data)
 	zconfig.TPrint("_____________________________________")
 	zconfig.TPrint(time.Now(), command, data)
 }

@@ -2,6 +2,7 @@ package misc
 
 import (
 	"errors"
+	"math/rand"
 	"sort"
 )
 
@@ -99,4 +100,12 @@ func (list *LimitedList) Append(newE string) {
 	if len(list.Elements) > list.MaxLen {
 		list.Elements = list.Elements[len(list.Elements)-list.MaxLen:]
 	}
+}
+
+func ChoiceInt64s(list []int64) int64 {
+	if len(list) == 0 {
+		return 0
+	}
+	i := rand.Intn(len(list))
+	return list[i]
 }

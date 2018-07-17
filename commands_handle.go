@@ -3,14 +3,14 @@ package main
 import (
 	//	"encoding/json"
 	"errors"
-	"fmt"
+	//	"fmt"
 	"time"
 
-	//	m "github.com/daominah/livestream/misc"
-	"github.com/daominah/livestream/connections"
 	"github.com/daominah/livestream/conversations"
 	"github.com/daominah/livestream/games/singleplayer/egg"
 	l "github.com/daominah/livestream/language"
+	"github.com/daominah/livestream/nbackend"
+	//	"github.com/daominah/livestream/nwebsocket"
 	"github.com/daominah/livestream/rank"
 	"github.com/daominah/livestream/streams"
 	"github.com/daominah/livestream/users"
@@ -22,32 +22,26 @@ const (
 	LOGIN_BY_COOKIE   = "LOGIN_BY_COOKIE"
 )
 
-func doAfterClosingConnection(c *connections.Connection) {
-	if c.UserId != 0 {
-		connections.GMutex.Lock()
-		delete(connections.MapConnection, c.UserId)
-		connections.GMutex.Unlock()
-
-		user, _ := users.GetUser(c.UserId)
-		if user != nil {
-			user.StatusL1 = users.STATUS_OFFLINE
-		}
+func HandleClientDisconnect(userId int64, loginId int64) {
+	nbackend.GBackend.HandleClientDisconnect(userId)
+	user, _ := users.GetUser(userId)
+	if user != nil {
+		user.StatusL1 = users.STATUS_OFFLINE
 	}
-	if c.LoginId != 0 {
-		temp := c.LoginId
-		c.LoginId = 0 // evade connection can be RecordLogout 2 times
-		users.RecordLogout(temp)
+	if loginId != 0 {
+		users.RecordLogout(loginId)
 	}
 }
 
 func UserCreate(username string, password string) (
 	map[string]interface{}, error) {
 	userId, e := users.CreateUser(username, password)
-	res := map[string]interface{}{"UserId": userId}
+	res := map[string]interface{}{"CreatedUserId": userId}
 	return res, e
 }
 
-func UserLogin(loginType string, connection *connections.Connection,
+func UserLogin(loginType string,
+	proxyId int64, clientConnId int64, clientIp string,
 	username string, password string, login_session string,
 	deviceName string, appName string) (
 	map[string]interface{}, error) {
@@ -66,29 +60,19 @@ func UserLogin(loginType string, connection *connections.Connection,
 	}
 	userObj.StatusL1 = users.STATUS_ONLINE
 	//
-	loginId, _ := users.RecordLogin(userObj.Id,
-		fmt.Sprintf("%v", connection.WsConn.RemoteAddr()), deviceName, appName)
-	connection.LoginId = loginId
+	loginId, _ := users.RecordLogin(userObj.Id, clientIp, deviceName, appName)
 	res := map[string]interface{}{
 		"User":         userObj.ToMap(),
+		"UserId":       userObj.Id,
+		"LoginId":      loginId,
 		"LoginSession": loginSession,
 	}
 	//
-	connections.GMutex.Lock()
-	oldConn := connections.MapConnection[userObj.Id]
-	connections.GMutex.Unlock()
-	if oldConn != nil {
-		oldConn.WriteMap(nil, map[string]interface{}{
-			"Command": "Disconnected",
-			"Text": fmt.Sprintf("%v. %v",
-				l.Get(l.M008Disconnected), l.Get(l.M009LoggedInDiffDevice)),
-		})
-		oldConn.Close()
-	}
-	connection.UserId = userObj.Id
-	connections.GMutex.Lock()
-	connections.MapConnection[userObj.Id] = connection
-	connections.GMutex.Unlock()
+	nbackend.WriteMapToUserId(userObj.Id, nil, map[string]interface{}{
+		"Command": "DisconnectFromServer",
+		"UserId":  userObj.Id,
+	})
+	nbackend.GBackend.HandleClientLogIn(proxyId, userObj.Id)
 	return res, err
 }
 

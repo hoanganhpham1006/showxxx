@@ -12,16 +12,17 @@ const (
 	PostgresDatabaseName = "live_stream"
 	PostgresAddress      = "127.0.0.1:5432"
 	//	PostgresAddress = "127.0.0.1:12354"
-
 	PostgresInitTablesFile = "/home/tungdt/go/src/github.com/daominah/livestream/zdatabase/init.sql"
 
-	IsDeveloping = true
+	BackendIp   = "127.0.0.1"
+	BackendPort = ":20004"
 
-	WebsocketPort = ":20001"
-	HttpPort      = ":20002"
-	SocketIoPort  = ":20003"
+	IsDeveloping       = true
+	BackendProfilePort = ":20000"
 
-	ProfilePort = ":20000"
+	ProxyPort           = ":20001"
+	AdminToolPort       = ":20002"
+	WebRTCSignalingPort = ":20003"
 
 	StaticHost         = "127.0.0.1"
 	StaticUploadPort   = ":20891"
@@ -36,6 +37,9 @@ const (
 	WebsocketWriteWait      = 60 * time.Second
 	WebsocketReadWait       = 60 * time.Second
 	WebsocketPingPeriod     = WebsocketReadWait * 9 / 10
+
+	LimitNConnsPerIp        = 10 // limit number of connections per ip address
+	LimitNRequestsPerSecond = 10 // limit number of request per second of a connection
 
 	LANG_VIETNAMESE = "LANG_VIETNAMESE"
 	LANG_ENGLISH    = "LANG_ENGLISH"

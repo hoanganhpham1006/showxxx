@@ -7,7 +7,7 @@ import (
 
 	"github.com/gorilla/websocket"
 
-	"github.com/daominah/livestream/connections"
+	"github.com/daominah/livestream/nwebsocket"
 	"github.com/daominah/livestream/zconfig"
 )
 
@@ -24,7 +24,7 @@ func Test02(t *testing.T) {
 		if e != nil {
 			t.Error(e)
 		}
-		c := connections.CreateConnection(wsConn)
+		c := nwebsocket.CreateConnection(wsConn)
 		c.TestingStart()
 		//	for i := 50; i < 1000; i++ {
 		//		c.WriteMap(nil, map[string]interface{}{

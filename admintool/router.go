@@ -26,6 +26,6 @@ func CreateRouter() *martini.ClassicMartini {
 
 func ListenAndServe() {
 	r := CreateRouter()
-	fmt.Printf("Listening admintool on address host%v\n", zconfig.HttpPort)
-	go r.RunOnAddr(zconfig.HttpPort)
+	fmt.Printf("Listening admintool on address host%v\n", zconfig.AdminToolPort)
+	go r.RunOnAddr(zconfig.AdminToolPort)
 }

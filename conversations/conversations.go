@@ -9,9 +9,9 @@ import (
 	"sync"
 	"time"
 
-	"github.com/daominah/livestream/connections"
 	l "github.com/daominah/livestream/language"
 	"github.com/daominah/livestream/misc"
+	"github.com/daominah/livestream/nbackend"
 	"github.com/daominah/livestream/users"
 	"github.com/daominah/livestream/zdatabase"
 	"github.com/lib/pq"
@@ -599,7 +599,7 @@ func CreateMessage(
 	conversation.Mutex.Lock()
 	for _, member := range conversation.Members {
 		if !member.IsMute {
-			connections.WriteMapToUserId(member.UserId, nil,
+			nbackend.WriteMapToUserId(member.UserId, nil,
 				map[string]interface{}{
 					"Command":    COMMAND_NEW_MESSAGE,
 					"NewMessage": msg.ToMap(),
@@ -637,7 +637,7 @@ func UserMarkMessage(userId int64, messageId int64, hasSeen bool) error {
 	}
 	for _, member := range conversation.Members {
 		if !member.IsMute {
-			connections.WriteMapToUserId(member.UserId, nil,
+			nbackend.WriteMapToUserId(member.UserId, nil,
 				map[string]interface{}{
 					"Command":        COMMAND_SEEN_MESSAGE,
 					"ChangedMessage": message.ToMap(),
