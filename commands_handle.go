@@ -366,7 +366,7 @@ func StreamView(viewerId int64, broadcasterId int64) (
 }
 func StreamAllSummaries() (
 	map[string]interface{}, error) {
-	rows := streams.StreamAllSummaries()
+	rows := streams.StreamAllSummaries(false)
 	return map[string]interface{}{"Streams": rows}, nil
 }
 func StreamGetMyViewing(viewerId int64) (

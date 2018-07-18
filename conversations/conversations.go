@@ -31,6 +31,7 @@ const (
 	DISPLAY_TYPE_NORMAL = "DISPLAY_TYPE_NORMAL"
 	DISPLAY_TYPE_BIG    = "DISPLAY_TYPE_BIG"
 	DISPLAY_TYPE_CHEER  = "DISPLAY_TYPE_CHEER"
+	DISPLAY_TYPE_ADMIN  = "DISPLAY_TYPE_ADMIN"
 
 	CHEER_FOR_USER = "CHEER_FOR_USER"
 	CHEER_FOR_TEAM = "CHEER_FOR_TEAM"
@@ -546,13 +547,17 @@ func CreateMessage(
 	conversationId int64, senderId int64, messageContent string,
 	displayType string) error {
 	conversation, e := GetConversation(conversationId)
-	if e != nil {
+	if conversation == nil {
 		return e
 	}
 	conversation.Mutex.Lock()
 	sender := conversation.Members[senderId]
 	conversation.Mutex.Unlock()
-	if sender == nil {
+	senderU, _ := users.GetUser(senderId)
+	if senderU == nil {
+		return errors.New(l.Get(l.M022InvalidUserId))
+	}
+	if sender == nil && senderU.Role != users.ROLE_ADMIN {
 		return errors.New(l.Get(l.M003ConversationOutsider))
 	}
 	if sender.IsBlocked {

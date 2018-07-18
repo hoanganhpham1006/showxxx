@@ -1,9 +1,9 @@
 package users
 
 import (
-	"fmt"
-	//	"encoding/json"
+	"encoding/json"
 	"errors"
+	"fmt"
 	"sync"
 	"time"
 
@@ -48,6 +48,14 @@ func (team *Team) ToMap() map[string]interface{} {
 		"Member":      members,
 	}
 	return result
+}
+
+func (team *Team) String() string {
+	bs, e := json.Marshal(team.ToMap())
+	if e != nil {
+		return "{}"
+	}
+	return string(bs)
 }
 
 // return teamId, error

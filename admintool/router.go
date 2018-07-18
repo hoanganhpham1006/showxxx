@@ -21,6 +21,14 @@ func CreateRouter() *martini.ClassicMartini {
 
 	r.Get("/stat/online", UserOnlineStat)
 
+	r.Get("/teams/:tid", TeamDetail)
+	r.Post("/teams/:tid/members", TeamAddMember) // "UserId" int64
+	r.Delete("/teams/:tid/members/:uid", TeamRemoveMember)
+
+	r.Get("/streams", StreamAllSummaries) // ?filter_reported=true
+	r.Get("/streams/:uid", StreamDetail)
+	r.Post("/streams/:uid/chat", StreamChat) // "Message" string
+
 	return r
 }
 

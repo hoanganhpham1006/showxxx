@@ -67,6 +67,16 @@ func (u *Stream) writeMapToAllViewer(err error, data map[string]interface{}) {
 	}
 }
 
+func GetStream(broadcasterId int64) (*Stream, error) {
+	GMutex.Lock()
+	stream := MapUserIdToStream[broadcasterId]
+	GMutex.Unlock()
+	if stream == nil {
+		return nil, errors.New(l.Get(l.M028StreamNotBroadcasting))
+	}
+	return stream, nil
+}
+
 func CreateStream(userId int64, streamName string, streamImage string) (
 	*Stream, error) {
 	user, e := users.GetUser(userId)
@@ -246,12 +256,19 @@ func (a StreamNViewersOrder) Less(i int, j int) bool {
 }
 func (a StreamNViewersOrder) Swap(i int, j int) { a[i], a[j] = a[j], a[i] }
 
-func StreamAllSummaries() []map[string]interface{} {
+// if filterReported == true: return only reported streams
+func StreamAllSummaries(filterReported bool) []map[string]interface{} {
 	GMutex.Lock()
 	result := make([]map[string]interface{}, 0)
 	temp := make([]*Stream, 0)
 	for _, stream := range MapUserIdToStream {
-		temp = append(temp, stream)
+		if !filterReported {
+			temp = append(temp, stream)
+		} else {
+			if len(stream.MapUidToReport) > 0 {
+				temp = append(temp, stream)
+			}
+		}
 	}
 	sort.Sort(StreamNViewersOrder(temp))
 	for _, stream := range temp {
