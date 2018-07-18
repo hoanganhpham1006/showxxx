@@ -61,6 +61,21 @@ func checkIsAdmin(r *http.Request) error {
 	return nil
 }
 
+func UserSearch(r *http.Request, w http.ResponseWriter, p martini.Params) string {
+	key := r.URL.Query().Get("search")
+	rows, err := users.Search(key)
+	if err != nil {
+		http.Error(w, err.Error(), 400)
+		return ""
+	}
+	bs, err := json.Marshal(rows)
+	if err != nil {
+		http.Error(w, err.Error(), 400)
+		return ""
+	}
+	return string(bs)
+}
+
 func UserDetail(r *http.Request, w http.ResponseWriter, p martini.Params) string {
 	playerId, _ := strconv.ParseInt(p["uid"], 10, 64)
 	user, err := users.GetUser(playerId)
