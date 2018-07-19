@@ -246,12 +246,19 @@ func Test13(t *testing.T) {
 	if e != nil {
 		t.Error(e)
 	}
+	//	fmt.Println("users", us)
 	us, e = Search("9")
 	if e != nil {
 		t.Error(e)
 	}
 	_ = us
-	// fmt.Println("users", us)
+	//fmt.Println("users", us)
+	us, e = Search("123")
+	if e != nil {
+		t.Error(e)
+	}
+	_ = us
+	fmt.Println("users", us)
 }
 
 func Test14(t *testing.T) {

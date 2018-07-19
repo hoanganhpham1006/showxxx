@@ -693,13 +693,12 @@ func Search(key string) ([]map[string]interface{}, error) {
 			`SELECT id FROM "user" WHERE id = $1`, keyInt64)
 		var uid int64
 		e := row.Scan(&uid)
-		if e != nil {
-			return nil, e
-		}
-		user, _ := GetUser(uid)
-		if user != nil {
-			result = append(result, user.ToShortMap())
-			duplicateIdChecker[uid] = true
+		if e == nil {
+			user, _ := GetUser(uid)
+			if user != nil {
+				result = append(result, user.ToShortMap())
+				duplicateIdChecker[uid] = true
+			}
 		}
 	}
 	//

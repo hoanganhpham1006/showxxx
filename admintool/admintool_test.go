@@ -107,6 +107,7 @@ func Test03(t *testing.T) {
 		if e != nil {
 			t.Error(e)
 		}
+		fmt.Println("resp.Header", resp.Header)
 		if resp.StatusCode != c.RespCode {
 			t.Errorf("case %v: resp.StatusCode != c.RespCode %v %v", i, resp.StatusCode, c.RespCode)
 		}

@@ -11,7 +11,7 @@ const (
 	PostgresPassword     = "123qwe"
 	PostgresDatabaseName = "live_stream"
 	PostgresAddress      = "127.0.0.1:5432"
-	//	PostgresAddress = "127.0.0.1:12354"
+	//	PostgresAddress        = "127.0.0.1:12354"
 	PostgresInitTablesFile = "/home/tungdt/go/src/github.com/daominah/livestream/zdatabase/init.sql"
 
 	BackendIp   = "127.0.0.1"
