@@ -321,3 +321,29 @@ func StreamChat(r *http.Request, w http.ResponseWriter, p martini.Params) string
 	}
 	return ""
 }
+
+func UploadFile(r *http.Request, w http.ResponseWriter, p martini.Params) string {
+	err := checkIsAdmin(r)
+	if err != nil {
+		http.Error(w, err.Error(), 401)
+		return ""
+	}
+	body, err := ioutil.ReadAll(r.Body)
+	if err != nil {
+		http.Error(w, err.Error(), 400)
+		return ""
+	}
+	var data map[string]interface{}
+	err = json.Unmarshal(body, &data)
+	if err != nil {
+		http.Error(w, err.Error(), 400)
+		return ""
+	}
+	file := misc.ReadBytes(data, "FileBase64")
+	imgPath, err := users.UploadFile(file)
+	if err != nil {
+		http.Error(w, err.Error(), 400)
+		return ""
+	}
+	return imgPath
+}

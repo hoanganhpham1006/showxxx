@@ -207,6 +207,11 @@ func RemoveTeamMember(teamId int64, userId int64) error {
 	team.Mutex.Lock()
 	delete(team.Members, userId)
 	team.Mutex.Unlock()
+	user, _ := GetUser(userId)
+	if user == nil {
+		return errors.New(l.Get(l.M022InvalidUserId))
+	}
+	user.TeamId = 0
 	return nil
 }
 

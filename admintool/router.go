@@ -30,7 +30,7 @@ func CreateRouter() *martini.ClassicMartini {
 	r.Get("/streams/:uid", StreamDetail)
 	r.Post("/streams/:uid/chat", StreamChat) // "Message" string
 
-	r.Post("/files")
+	r.Post("/files", UploadFile) // "FileBase64" bytes
 
 	return r
 }

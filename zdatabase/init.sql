@@ -337,6 +337,8 @@ CREATE TABLE stream_archive (
 CREATE INDEX stream_archive_i01 ON public.stream_archive
     using btree (broadcaster_id, started_time);
 
+    
+    
 CREATE TABLE match_single (
     id TEXT, CONSTRAINT match_single_pkey PRIMARY KEY (id),
     game_code TEXT DEFAULT '',
@@ -367,4 +369,25 @@ CREATE TABLE match_multi_participant (
     user_id BIGINT DEFAULT 0 REFERENCES public."user" (id),
     result_changed_money DOUBLE PRECISION DEFAULT 0,
     CONSTRAINT match_multi_participant_pkey PRIMARY KEY (match_id, user_id)
+);
+
+
+
+
+
+CREATE TABLE finance_charge (
+    id BIGSERIAL, CONSTRAINT finance_charge_pkey PRIMARY KEY (id),
+    user_id BIGINT DEFAULT 0 REFERENCES public."user" (id),
+    charging_type TEXT DEFAULT '',
+    created_time TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    card_serial TEXT DEFAULT '',
+    card_code TEXT DEFAULT '',
+    third_party_transaction_id TEXT DEFAULT '',
+    card_value DOUBLE PRECISION DEFAULT 0,
+    in_app_value DOUBLE PRECISION DEFAULT 0,
+    last_modified TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+CREATE TABLE finance_withdraw (
+
 );
