@@ -51,7 +51,7 @@ func Test02(t *testing.T) {
 		c.WriteMap(nil, map[string]interface{}{
 			"Command":  "UserFollow",
 			"Key":      "V",
-			"TargetId": "7",
+			"TargetId": 7,
 		})
 
 	}

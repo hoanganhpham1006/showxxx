@@ -95,15 +95,15 @@ func (proxy *Proxy) doAfterReceivingBackendMessage(
 
 	if (command == "UserLoginByPassword" ||
 		command == "UserLoginByCookie") && errM == "" { // successfully logged in
+		resId := misc.ReadInt64(data, "UserId")
 		proxy.Mutex.Lock()
-		proxy.MapUserIdToConnId[misc.ReadInt64(data, "UserId")] = clientConnId
+		proxy.MapUserIdToConnId[resId] = clientConnId
 		proxy.Mutex.Unlock()
 		proxy.Server.Mutex.Lock()
-		proxy.Server.MapIdToConnection[clientConnId].UserId =
-			misc.ReadInt64(data, "UserId")
+		proxy.Server.MapIdToConnection[clientConnId].UserId = resId
 		proxy.Server.MapIdToConnection[clientConnId].LoginId = loginId
 		proxy.Server.Mutex.Unlock()
-		proxy.WriteToUserId(userId, message)
+		proxy.WriteToUserId(resId, message)
 	} else if command == "DisconnectFromServer" {
 		proxy.Mutex.Lock()
 		connId := proxy.MapUserIdToConnId[userId]
