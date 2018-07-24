@@ -17,15 +17,16 @@ func Test01(t *testing.T) {
 }
 
 func Test02(t *testing.T) {
-	for i := 0; i < 100000; i++ {
-		serverAddr := fmt.Sprintf("ws://localhost%v/ws", zconfig.WebsocketPort)
-		//	serverAddr := fmt.Sprintf("ws://43.239.221.117%v/ws", zconfig.WebsocketPort)
+	for i := 0; i < 1; i++ {
+		//		serverAddr := fmt.Sprintf("ws://localhost%v/ws", zconfig.ProxyPort)
+		serverAddr := fmt.Sprintf("ws://43.239.221.117%v/ws", zconfig.ProxyPort)
 		wsConn, _, e := websocket.DefaultDialer.Dial(serverAddr, nil)
 		if e != nil {
 			t.Error(e)
 		}
-		c := nwebsocket.CreateConnection(wsConn)
-		c.TestingStart()
+		c := nwebsocket.CreateConnection(wsConn, 999999)
+		go c.ReadPump(nil, nil)
+		go c.WritePump(nil)
 		//	for i := 50; i < 1000; i++ {
 		//		c.WriteMap(nil, map[string]interface{}{
 		//			"Command":    "UserCreate",
@@ -37,15 +38,22 @@ func Test02(t *testing.T) {
 		//	}
 
 		c.WriteMap(nil, map[string]interface{}{
-			"Command":      "UserLoginByCookie",
-			"LoginSession": "7b226c6f67696e54696d65223a22323031382d30372d30325430393a31363a33302e3738303231353334362b30373a3030222c22757365724964223a223134227d",
+			"Command":  "UserLoginByPassword",
+			"Username": "daominah",
+			"Password": "123qwe",
 		})
-		// time.Sleep(200 * time.Millisecond)
+		time.Sleep(200 * time.Millisecond)
 		c.WriteMap(nil, map[string]interface{}{
 			"Command":        "ConversationCreateMessage",
 			"ConversationId": 1,
 			"MessageContent": "hohohaha",
 		})
+		c.WriteMap(nil, map[string]interface{}{
+			"Command":  "UserFollow",
+			"Key":      "V",
+			"TargetId": "7",
+		})
+
 	}
 
 	select {}
