@@ -20,7 +20,7 @@ func doAfterReceivingMessage(connection *nwebsocket.Connection, message []byte) 
 	}
 
 	proxyId := m.ReadInt64(data, "ProxyId")
-	userId := m.ReadInt64(data, "UserId")
+	userId := m.ReadInt64(data, "SourceUserId")
 	clientConnId := m.ReadInt64(data, "ConnId")
 	clientIp := m.ReadString(data, "ClientIpAddr")
 
@@ -285,8 +285,6 @@ func doAfterReceivingMessage(connection *nwebsocket.Connection, message []byte) 
 	d["Command"] = command
 	d["CommandId"] = commandId
 	d["ConnId"] = clientConnId
-	if _, isIn := d["UserId"]; !isIn {
-		d["UserId"] = userId
-	}
+	d["SourceUserId"] = userId
 	connection.WriteMap(e, d)
 }

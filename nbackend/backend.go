@@ -89,7 +89,7 @@ func (proxy *Proxy) doAfterReceivingBackendMessage(
 	}
 	command := misc.ReadString(data, "Command")
 	clientConnId := misc.ReadInt64(data, "ConnId")
-	userId := misc.ReadInt64(data, "UserId")
+	userId := misc.ReadInt64(data, "SourceUserId")
 	errM := misc.ReadString(data, "Error")
 	loginId := misc.ReadInt64(data, "LoginId")
 
@@ -160,7 +160,7 @@ func (proxy *Proxy) getABackendConnection() *nwebsocket.Connection {
 	return conn
 }
 
-// add ProxyId/ConnId/UserId/RemoteAddr field to client's data then send to backend,
+// add ProxyId/ConnId/SourceUserId/RemoteAddr field to client's data then send to backend,
 func (proxy *Proxy) doAfterReceivingClientMessage(
 	connection *nwebsocket.Connection, message []byte) {
 	var data map[string]interface{}
@@ -171,7 +171,7 @@ func (proxy *Proxy) doAfterReceivingClientMessage(
 	data["ProxyId"] = proxy.ProxyId
 	data["ConnId"] = connection.ConnId
 	data["ClientIpAddr"] = connection.Ip()
-	data["UserId"] = connection.UserId
+	data["SourceUserId"] = connection.UserId
 	bs, _ := json.Marshal(data)
 	backendConn := proxy.getABackendConnection()
 	if backendConn != nil {
@@ -186,9 +186,9 @@ func (proxy *Proxy) doAfterClosingClientConnection(
 	backendConn := proxy.getABackendConnection()
 	if backendConn != nil {
 		backendConn.WriteMap(nil, map[string]interface{}{
-			"Command": "DisconnectFromClient",
-			"UserId":  connection.UserId,
-			"LoginId": connection.LoginId,
+			"Command":      "DisconnectFromClient",
+			"SourceUserId": connection.UserId,
+			"LoginId":      connection.LoginId,
 		})
 	}
 	connection.LoginId = 0
