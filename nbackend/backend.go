@@ -99,7 +99,7 @@ func (proxy *Proxy) doAfterReceivingBackendMessage(
 		proxy.MapUserIdToConnId[userId] = clientConnId
 		proxy.Mutex.Unlock()
 		proxy.Server.Mutex.Lock()
-		proxy.Server.MapIdToConnection[clientConnId].UserId = userId
+		proxy.Server.MapIdToConnection[clientConnId].UserId = misc.ReadInt64(data, "UserId")
 		proxy.Server.MapIdToConnection[clientConnId].LoginId = loginId
 		proxy.Server.Mutex.Unlock()
 		proxy.WriteToUserId(userId, message)
