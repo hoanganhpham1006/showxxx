@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/daominah/livestream/conversations"
+	//	"github.com/daominah/livestream/games/singleplayer"
 	"github.com/daominah/livestream/games/singleplayer/egg"
 	l "github.com/daominah/livestream/language"
 	"github.com/daominah/livestream/nbackend"
@@ -414,6 +415,7 @@ func SGameGetPlayingMatch(gameCode string, userId int64) (
 	}
 	return match.ToMap(), nil
 }
+
 func SGameEggSendMove(
 	userId int64, data map[string]interface{}, args ...interface{}) (
 	map[string]interface{}, error) {
@@ -426,5 +428,15 @@ func SGameEggSendMove(
 		return nil, errors.New(l.Get(l.M037GameInvalidMatchId))
 	}
 	err := match.SendMove(data)
+	return nil, err
+}
+func SGameEggCreateMatch(userId int64) (
+	map[string]interface{}, error) {
+	game := MapSGames[egg.GAME_CODE_EGG]
+	if game == nil {
+		return nil, errors.New(l.Get(l.M035GameInvalidGameCode))
+	}
+	match := &egg.EggMatch{}
+	err := game.InitMatch(userId, match)
 	return nil, err
 }
