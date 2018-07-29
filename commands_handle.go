@@ -90,14 +90,32 @@ func UserDetail(userId int64) (
 func UserFollowers(userId int64) (
 	map[string]interface{}, error) {
 	followerIds := users.LoadFollowers(userId)
-	res := map[string]interface{}{"FollowerIds": followerIds}
+	mapIdToDetails := make(map[int64]map[string]interface{})
+	for _, id := range followerIds {
+		user, _ := users.GetUser(id)
+		if user != nil {
+			mapIdToDetails[id] = user.ToMap()
+		}
+	}
+	res := map[string]interface{}{
+		"FollowerIds": followerIds,
+		"Details":     mapIdToDetails}
 	return res, nil
 }
 
 func UserFollowing(userId int64) (
 	map[string]interface{}, error) {
 	followingIds := users.LoadFollowing(userId)
-	res := map[string]interface{}{"FollowingIds": followingIds}
+	mapIdToDetails := make(map[int64]map[string]interface{})
+	for _, id := range followingIds {
+		user, _ := users.GetUser(id)
+		if user != nil {
+			mapIdToDetails[id] = user.ToMap()
+		}
+	}
+	res := map[string]interface{}{
+		"FollowingIds": followingIds,
+		"Details":      mapIdToDetails}
 	return res, nil
 }
 
