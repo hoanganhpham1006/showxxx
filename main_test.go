@@ -43,18 +43,23 @@ func Test02(t *testing.T) {
 			"Password": "123qwe",
 		})
 		time.Sleep(200 * time.Millisecond)
+		//		c.WriteMap(nil, map[string]interface{}{
+		//			"Command":        "ConversationCreateMessage",
+		//			"ConversationId": 1,
+		//			"MessageContent": "hohohaha",
+		//		})
+		//		c.WriteMap(nil, map[string]interface{}{
+		//			"Command":  "UserFollow",
+		//			"Key":      "V",
+		//			"TargetId": 7,
+		//		})
 		c.WriteMap(nil, map[string]interface{}{
-			"Command":        "ConversationCreateMessage",
-			"ConversationId": 1,
-			"MessageContent": "hohohaha",
-		})
-		c.WriteMap(nil, map[string]interface{}{
-			"Command":  "UserFollow",
-			"Key":      "V",
+			"Command":  "UserFollowing",
+			"Key":      "T",
 			"TargetId": 7,
+			"UserId":   1,
 		})
 
 	}
-
 	select {}
 }

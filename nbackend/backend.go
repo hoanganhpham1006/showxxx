@@ -100,8 +100,11 @@ func (proxy *Proxy) doAfterReceivingBackendMessage(
 		proxy.MapUserIdToConnId[resId] = clientConnId
 		proxy.Mutex.Unlock()
 		proxy.Server.Mutex.Lock()
-		proxy.Server.MapIdToConnection[clientConnId].UserId = resId
-		proxy.Server.MapIdToConnection[clientConnId].LoginId = loginId
+		conn := proxy.Server.MapIdToConnection[clientConnId]
+		if conn != nil {
+			conn.UserId = resId
+			conn.LoginId = loginId
+		}
 		proxy.Server.Mutex.Unlock()
 		proxy.WriteToUserId(resId, message)
 	} else if command == "DisconnectFromServer" {

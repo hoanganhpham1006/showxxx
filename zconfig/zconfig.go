@@ -23,6 +23,7 @@ const (
 	ProxyPort           = ":20001"
 	AdminToolPort       = ":20002"
 	WebRTCSignalingPort = ":20003"
+	IPNPort             = ":20005"
 
 	StaticHost         = "127.0.0.1"
 	StaticUploadPort   = ":20891"

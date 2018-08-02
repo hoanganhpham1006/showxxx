@@ -321,7 +321,7 @@ INSERT INTO public.gift (name, val) VALUES ('Champagne', 200000);
 INSERT INTO public.gift (name, val) VALUES ('Cigar', 500000);
 INSERT INTO public.gift (name, val) VALUES ('Sports car ', 1000000);
 
-CREATE TABLE stream_archive (
+CREATE TABLE public.stream_archive (
     id BIGSERIAL, CONSTRAINT stream_archive_pkey PRIMARY KEY (id),
     broadcaster_id BIGINT DEFAULT 0 REFERENCES public."user" (id),
     stream_image TEXT DEFAULT '',
@@ -377,16 +377,26 @@ CREATE TABLE match_multi_participant (
 
 CREATE TABLE finance_charge (
     id BIGSERIAL, CONSTRAINT finance_charge_pkey PRIMARY KEY (id),
+    created_time TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
     user_id BIGINT DEFAULT 0 REFERENCES public."user" (id),
     charging_type TEXT DEFAULT '',
-    created_time TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    -- 
+    http_request TEXT DEFAULT '',
     card_serial TEXT DEFAULT '',
     card_code TEXT DEFAULT '',
-    third_party_transaction_id TEXT DEFAULT '',
-    card_value DOUBLE PRECISION DEFAULT 0,
+    --
+    http_response TEXT DEFAULT '',
+    vnd_value DOUBLE PRECISION DEFAULT 0,
+    transaction_id_3rd_party TEXT DEFAULT '',
+    is_successful BOOL DEFAULT FALSE,
     in_app_value DOUBLE PRECISION DEFAULT 0,
+    money_log_id BIGINT DEFAULT 0 REFERENCES public.user_money_log (id),
     last_modified TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
+CREATE INDEX finance_charge_i01 ON public.finance_charge
+    USING btree (created_time);
+CREATE INDEX finance_charge_i02 ON public.finance_charge
+    USING btree (user_id, created_time);
 
 CREATE TABLE finance_withdraw (
 
