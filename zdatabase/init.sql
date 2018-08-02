@@ -393,11 +393,29 @@ CREATE TABLE finance_charge (
     money_log_id BIGINT DEFAULT 0 REFERENCES public.user_money_log (id),
     last_modified TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
-CREATE INDEX finance_charge_i01 ON public.finance_charge
-    USING btree (created_time);
-CREATE INDEX finance_charge_i02 ON public.finance_charge
-    USING btree (user_id, created_time);
+CREATE INDEX finance_charge_i01 ON public.finance_charge (created_time);
+CREATE INDEX finance_charge_i02 ON public.finance_charge (user_id, created_time);
 
+    
+    
+    
 CREATE TABLE finance_withdraw (
-
+    id BIGSERIAL, CONSTRAINT finance_withdraw_pkey PRIMARY KEY (id),
+    created_time TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    user_id BIGINT DEFAULT 0 REFERENCES public."user" (id),
+    withdrawing_type TEXT DEFAULT '',
+    --
+    http_request TEXT DEFAULT '',
+    in_app_value DOUBLE PRECISION DEFAULT 0,
+    money_log_id BIGINT DEFAULT 0 REFERENCES public.user_money_log (id),
+    is_denied_by_admin BOOL DEFAULT FALSE,
+    --
+    http_response TEXT DEFAULT '',
+    vnd_value DOUBLE PRECISION DEFAULT 0,
+    transaction_id_3rd_party TEXT DEFAULT '',
+    is_successful BOOL DEFAULT FALSE,
+    last_modified TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
+
+CREATE INDEX finance_withdraw_i01 ON public.finance_withdraw (created_time);
+CREATE INDEX finance_withdraw_i02 ON public.finance_withdraw (user_id, created_time);

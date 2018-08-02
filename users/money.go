@@ -50,19 +50,19 @@ func ViewMoneyLog(userId int64, fromTime time.Time, toTime time.Time) (
 }
 
 // change money in database,
-// return moneyAfterChanged, databaseError, logicError
+// return moneyAfterChanged, databaseError, logicError, moneyLogId
 func changeUserMoney(
 	userId int64, moneyType string, change float64, reason string,
 	constraintPositiveMoney bool) (
-	float64, error, error) {
+	float64, error, error, int64) {
 	tx, err := zdatabase.DbPool.Begin()
 	if err != nil {
-		return -1, err, nil
+		return -1, err, nil, 0
 	}
 	_, err = tx.Exec(`SET TRANSACTION ISOLATION LEVEL Serializable`)
 	if err != nil {
 		tx.Rollback()
-		return -1, err, nil
+		return -1, err, nil, 0
 	}
 	var val float64
 	{
@@ -71,7 +71,7 @@ func changeUserMoney(
 			WHERE user_id = $1 AND money_type = $2 `)
 		if err != nil {
 			tx.Rollback()
-			return -1, err, nil
+			return -1, err, nil, 0
 		}
 		defer stmt.Close()
 		row := stmt.QueryRow(userId, moneyType)
@@ -79,15 +79,15 @@ func changeUserMoney(
 		if err != nil {
 			if err.Error() == "sql: no rows in result set" {
 				tx.Rollback()
-				return -1, nil, errors.New(l.Get(l.M019MoneyTypeNotExist))
+				return -1, nil, errors.New(l.Get(l.M019MoneyTypeNotExist)), 0
 			}
 			tx.Rollback()
-			return -1, err, nil
+			return -1, err, nil, 0
 		}
 	}
 	if constraintPositiveMoney && (val+change < 0) {
 		tx.Rollback()
-		return -1, nil, errors.New(l.Get(l.M018NotEnoughMoney))
+		return -1, nil, errors.New(l.Get(l.M018NotEnoughMoney)), 0
 	}
 	{
 		stmt, err := tx.Prepare(
@@ -95,48 +95,50 @@ func changeUserMoney(
 			WHERE user_id = $2 AND money_type = $3 `)
 		if err != nil {
 			tx.Rollback()
-			return -1, err, nil
+			return -1, err, nil, 0
 		}
 		defer stmt.Close()
 		_, err = stmt.Exec(val+change, userId, moneyType)
 		if err != nil {
 			tx.Rollback()
-			return -1, err, nil
+			return -1, err, nil, 0
 		}
 	}
+	var moneyLogId int64
 	if moneyType != MT_ONLINE_DURATION && moneyType != MT_BROADCAST_DURATION {
 		stmt, err := tx.Prepare(
 			`INSERT INTO user_money_log
 			(user_id, money_type, changed_val, money_before, money_after, reason)
-			VALUES ($1, $2, $3, $4, $5, $6) `)
+			VALUES ($1, $2, $3, $4, $5, $6) RETURNING id`)
 		if err != nil {
 			tx.Rollback()
-			return -1, err, nil
+			return -1, err, nil, 0
 		}
 		defer stmt.Close()
-		_, err = stmt.Exec(userId, moneyType, change, val, val+change, reason)
+		row := stmt.QueryRow(userId, moneyType, change, val, val+change, reason)
+		err = row.Scan(&moneyLogId)
 		if err != nil {
 			tx.Rollback()
-			return -1, err, nil
+			return -1, err, nil, 0
 		}
 	}
-	return val + change, tx.Commit(), nil
+	return val + change, tx.Commit(), nil, moneyLogId
 }
 
-// return moneyAfterChanged, error
-func ChangeUserMoney(
+func changeUserMoneyHelper(
 	userId int64, moneyType string, change float64, reason string,
 	constraintPositiveMoney bool) (
-	float64, error) {
+	float64, error, int64) {
 	user, e := GetUser(userId)
 	if user == nil {
-		return -1, e
+		return -1, e, 0
 	}
 	timeout := time.Now().Add(5 * time.Second)
 	var newVal float64
 	var databaseError, logicError error
+	var moneyLogId int64
 	for time.Now().Before(timeout) {
-		newVal, databaseError, logicError = changeUserMoney(
+		newVal, databaseError, logicError, moneyLogId = changeUserMoney(
 			userId, moneyType, change, reason, constraintPositiveMoney)
 		if databaseError == nil {
 			break
@@ -159,7 +161,27 @@ func ChangeUserMoney(
 		GMutex.Unlock()
 	}
 	//
-	return newVal, resultError
+	return newVal, resultError, moneyLogId
+}
+
+// return moneyAfterChanged, error
+func ChangeUserMoney(
+	userId int64, moneyType string, change float64, reason string,
+	constraintPositiveMoney bool) (
+	float64, error) {
+	moneyAfterChanged, err, _ := changeUserMoneyHelper(
+		userId, moneyType, change, reason, constraintPositiveMoney)
+	return moneyAfterChanged, err
+}
+
+// return moneyAfterChanged, error, moneyLogId
+func ChangeUserMoney2(
+	userId int64, moneyType string, change float64, reason string,
+	constraintPositiveMoney bool) (
+	float64, error, int64) {
+	moneyAfterChanged, err, moneyLogId := changeUserMoneyHelper(
+		userId, moneyType, change, reason, constraintPositiveMoney)
+	return moneyAfterChanged, err, moneyLogId
 }
 
 // change money in database,

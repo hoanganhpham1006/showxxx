@@ -43,7 +43,7 @@ func Test02(t *testing.T) {
 	}
 }
 
-func T1est03(t *testing.T) {
+func Test03(t *testing.T) {
 	var e error
 	var user *User
 	var cookie string
@@ -78,6 +78,18 @@ func T1est03(t *testing.T) {
 	}
 	if ma1-mb1 != float64(nChanges) {
 		t.Error("ma1-mb1 != nChanges                                                                      ")
+	}
+}
+
+func Test15(t *testing.T) {
+	_, err, moneyLogId :=
+		ChangeUserMoney2(1, MT_CASH, 100, "TEST", false)
+	if err != nil {
+		t.Error()
+	}
+	fmt.Println("moneyLogId", moneyLogId)
+	if moneyLogId == 0 {
+		t.Error()
 	}
 }
 
