@@ -382,6 +382,7 @@ CREATE TABLE finance_charge (
     charging_type TEXT DEFAULT '',
     -- 
     http_request TEXT DEFAULT '',
+    card_vendor TEXT DEFAULT '',
     card_serial TEXT DEFAULT '',
     card_code TEXT DEFAULT '',
     --
@@ -389,6 +390,7 @@ CREATE TABLE finance_charge (
     vnd_value DOUBLE PRECISION DEFAULT 0,
     transaction_id_3rd_party TEXT DEFAULT '',
     is_successful BOOL DEFAULT FALSE,
+    error_message TEXT DEFAULT '',
     in_app_value DOUBLE PRECISION DEFAULT 0,
     money_log_id BIGINT DEFAULT 0 REFERENCES public.user_money_log (id),
     last_modified TIMESTAMP WITH TIME ZONE DEFAULT NOW()
@@ -414,6 +416,7 @@ CREATE TABLE finance_withdraw (
     vnd_value DOUBLE PRECISION DEFAULT 0,
     transaction_id_3rd_party TEXT DEFAULT '',
     is_successful BOOL DEFAULT FALSE,
+    error_message TEXT DEFAULT '',
     last_modified TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 

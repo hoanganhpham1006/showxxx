@@ -272,11 +272,17 @@ func StreamAllSummaries(filterReported bool) []map[string]interface{} {
 	}
 	sort.Sort(StreamNViewersOrder(temp))
 	for _, stream := range temp {
+		var temp1 map[string]interface{}
+		b, _ := users.GetUser(stream.BroadcasterId)
+		if b != nil {
+			temp1 = b.ToMap()
+		}
 		result = append(result, map[string]interface{}{
-			"BroadcasterId": stream.BroadcasterId,
-			"NViewers":      len(stream.ViewerIds),
-			"StreamName":    stream.StreamName,
-			"StreamImage":   stream.StreamImage,
+			"BroadcasterId":     stream.BroadcasterId,
+			"BroadcasterDetail": temp1,
+			"NViewers":          len(stream.ViewerIds),
+			"StreamName":        stream.StreamName,
+			"StreamImage":       stream.StreamImage,
 		})
 	}
 	GMutex.Unlock()

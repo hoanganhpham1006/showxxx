@@ -19,6 +19,7 @@ import (
 	"github.com/daominah/livestream/nbackend"
 	"github.com/daominah/livestream/rank"
 	"github.com/daominah/livestream/streams"
+	"github.com/daominah/livestream/users"
 )
 
 // read only map
@@ -49,6 +50,7 @@ func main() {
 	nbackend.InitBackend(doAfterReceivingMessage)
 	streams.ForwarderListenAndServer()
 	admintool.ListenAndServe()
+	users.IpnListenAndServe()
 
 	// reset rank leaderboard
 	go func() {

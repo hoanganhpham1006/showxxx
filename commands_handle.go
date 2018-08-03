@@ -288,6 +288,17 @@ func Cheer(conversation_id int64, cheerer_id int64, target_user_id int64,
 	return nil, err
 }
 
+func MoneyCharge(userId int64, data map[string]interface{}, args ...interface{},
+) (map[string]interface{}, error) {
+	return users.MoneyIOCharge(userId, data)
+}
+
+func MoneyWithdraw(userId int64, data map[string]interface{}, args ...interface{},
+) (map[string]interface{}, error) {
+	// TODO
+	return users.MoneyIOWithdraw(userId, data)
+}
+
 func ConversationGifts() (map[string]interface{}, error) {
 	gifts, e := conversations.LoadGiftsList()
 	if e != nil {

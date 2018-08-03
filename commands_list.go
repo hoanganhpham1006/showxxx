@@ -187,6 +187,25 @@ func doAfterReceivingMessage(connection *nwebsocket.Connection, message []byte) 
 				m.ReadString(data, "CheerMessage"),
 				m.ReadString(data, "Misc"), // json, ex: {"Description": "9x Mangoes"}
 			)
+		case "MoneyCharge":
+			d, e = MoneyCharge(
+				userId,
+				data,
+				m.ReadString(data, "ChargingType"),
+				m.ReadString(data, "CardVendor"),
+				m.ReadString(data, "CardSerial"),
+				m.ReadString(data, "CardCode"),
+				m.ReadString(data, "BankName"),
+				m.ReadFloat64(data, "BankVndValue"),
+			)
+		case "MoneyWithdraw":
+			d, e = MoneyWithdraw(
+				userId,
+				data,
+				m.ReadString(data, "WithdrawingType"),
+				m.ReadString(data, "VndValue"),
+			)
+
 		case "ConversationGifts":
 			d, e = ConversationGifts()
 
