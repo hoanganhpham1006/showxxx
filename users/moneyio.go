@@ -50,7 +50,7 @@ func IpnCreateRouter() *martini.ClassicMartini {
 func IpnListenAndServe() {
 	r := IpnCreateRouter()
 	fmt.Printf("Listening ipn on address %v\n", zconfig.IPNPort)
-	go r.RunOnAddr(zconfig.AdminToolPort)
+	go r.RunOnAddr(zconfig.IPNPort)
 }
 
 func IpnPaytrustCharge(
