@@ -382,9 +382,7 @@ CREATE TABLE finance_charge (
     charging_type TEXT DEFAULT '',
     -- 
     http_request TEXT DEFAULT '',
-    card_vendor TEXT DEFAULT '',
-    card_serial TEXT DEFAULT '',
-    card_code TEXT DEFAULT '',
+    charging_input TEXT DEFAULT '{}',
     --
     http_response TEXT DEFAULT '',
     vnd_value DOUBLE PRECISION DEFAULT 0,
@@ -392,11 +390,12 @@ CREATE TABLE finance_charge (
     is_successful BOOL DEFAULT FALSE,
     error_message TEXT DEFAULT '',
     in_app_value DOUBLE PRECISION DEFAULT 0,
-    money_log_id BIGINT DEFAULT 0 REFERENCES public.user_money_log (id),
+    money_log_id BIGINT DEFAULT 0,
     last_modified TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 CREATE INDEX finance_charge_i01 ON public.finance_charge (created_time);
 CREATE INDEX finance_charge_i02 ON public.finance_charge (user_id, created_time);
+CREATE INDEX finance_charge_i03 ON public.finance_charge (money_log_id);
 
     
     
@@ -407,18 +406,21 @@ CREATE TABLE finance_withdraw (
     user_id BIGINT DEFAULT 0 REFERENCES public."user" (id),
     withdrawing_type TEXT DEFAULT '',
     --
-    http_request TEXT DEFAULT '',
     in_app_value DOUBLE PRECISION DEFAULT 0,
-    money_log_id BIGINT DEFAULT 0 REFERENCES public.user_money_log (id),
-    is_denied_by_admin BOOL DEFAULT FALSE,
-    --
-    http_response TEXT DEFAULT '',
     vnd_value DOUBLE PRECISION DEFAULT 0,
+    money_log_id BIGINT DEFAULT 0,
+    is_denied_by_admin BOOL DEFAULT FALSE,
+    denied_reason TEXT DEFAULT '',
+    --
+    http_request TEXT DEFAULT '',
+    http_response TEXT DEFAULT '',
     transaction_id_3rd_party TEXT DEFAULT '',
     is_successful BOOL DEFAULT FALSE,
     error_message TEXT DEFAULT '',
+    withdrawing_output TEXT DEFAULT '{}',
     last_modified TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
 CREATE INDEX finance_withdraw_i01 ON public.finance_withdraw (created_time);
 CREATE INDEX finance_withdraw_i02 ON public.finance_withdraw (user_id, created_time);
+CREATE INDEX finance_withdraw_i03 ON public.finance_withdraw (money_log_id);

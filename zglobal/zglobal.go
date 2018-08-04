@@ -21,6 +21,10 @@ var MessageBigCost float64
 
 var GameEggPayoutRate float64
 
+var MoneyIOAvailableChargingTypes map[string]bool
+var MoneyIOPaytrustMapBankNameToBankCode map[string]string
+var MoneyIORateBankCharging float64
+
 func init() {
 	// default values
 	ExVar1Default := map[string]int64{"a": 1, "b": 2}
@@ -33,9 +37,21 @@ func init() {
 
 	GameEggPayoutRateDefault := float64(0.90)
 
+	MoneyIOAvailableChargingTypesDefault := map[string]bool{
+		"paytrust": true,
+	}
+	MoneyIOPaytrustMapBankNameToBankCodeDefault := map[string]string{
+		"VietinBank":  "5a8d9b3432bc7",
+		"BIDV":        "5a8dc25912217",
+		"TechComBank": "5a8ee643945a3",
+		"SacomBank":   "5a8eec3fc74e6",
+		"DongABank":   "5a904bc3775ba"}
+	MoneyIORateBankChargingDefault := float64(1.0)
+
 	// loop update values
 	go func() {
 		time.Sleep(5 * time.Second) // waiting for init record.dbPool
+
 		for {
 			var key, value string
 			var err error
@@ -99,6 +115,38 @@ func init() {
 				temp := fmt.Sprintf("%v", GameEggPayoutRateDefault)
 				zdatabase.SaveGlobalVar(key, temp)
 			}
+
+			//
+			key = "MoneyIOAvailableChargingTypes"
+			value = zdatabase.LoadGlobalVar(key)
+			err = json.Unmarshal([]byte(value), &MoneyIOAvailableChargingTypes)
+			if err != nil {
+				fmt.Println("zglobal err", key, err)
+				MoneyIOAvailableChargingTypes = MoneyIOAvailableChargingTypesDefault
+				temp, _ := json.Marshal(MoneyIOAvailableChargingTypesDefault)
+				zdatabase.SaveGlobalVar(key, string(temp))
+			}
+			//
+			key = "MoneyIOPaytrustMapBankNameToBankCode"
+			value = zdatabase.LoadGlobalVar(key)
+			err = json.Unmarshal([]byte(value), &MoneyIOPaytrustMapBankNameToBankCode)
+			if err != nil {
+				fmt.Println("zglobal err", key, err)
+				MoneyIOPaytrustMapBankNameToBankCode = MoneyIOPaytrustMapBankNameToBankCodeDefault
+				temp, _ := json.Marshal(MoneyIOPaytrustMapBankNameToBankCodeDefault)
+				zdatabase.SaveGlobalVar(key, string(temp))
+			}
+			//
+			key = "MoneyIORateBankCharging"
+			value = zdatabase.LoadGlobalVar(key)
+			MoneyIORateBankCharging, err = strconv.ParseFloat(value, 64)
+			if err != nil {
+				fmt.Println("zglobal err", key, err)
+				MoneyIORateBankCharging = MoneyIORateBankChargingDefault
+				temp := fmt.Sprintf("%v", MoneyIORateBankChargingDefault)
+				zdatabase.SaveGlobalVar(key, temp)
+			}
+
 			//
 			time.Sleep(5 * time.Second)
 		}

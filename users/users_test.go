@@ -43,7 +43,7 @@ func Test02(t *testing.T) {
 	}
 }
 
-func Test03(t *testing.T) {
+func T1est03(t *testing.T) {
 	var e error
 	var user *User
 	var cookie string
@@ -87,7 +87,7 @@ func Test15(t *testing.T) {
 	if err != nil {
 		t.Error()
 	}
-	fmt.Println("moneyLogId", moneyLogId)
+	// fmt.Println("moneyLogId", moneyLogId)
 	if moneyLogId == 0 {
 		t.Error()
 	}
@@ -295,5 +295,86 @@ func Test14(t *testing.T) {
 		"Bắc Ninh", "Vân thiếu máu", "van.png", "cute sexy")
 	if e != nil {
 		t.Error(e)
+	}
+}
+
+func TestCharging(t *testing.T) {
+	var e error
+	user_id := int64(1)
+	charging_type := "MinAhCard"
+	charging_input := map[string]interface{}{
+		"CardVendor": "Viettel", "CardSerial": "456", "CardCode": "123123"}
+	chargingId, e := chargingInitDbRow(user_id, charging_type, charging_input)
+	// fmt.Println("chargingId", chargingId)
+	if e != nil {
+		t.Error(e)
+	}
+	e = chargingSaveThirdPartyResponse(chargingId,
+		"http_request", "http_response", float64(10000), "transaction_id_3rd_party",
+		true, "")
+	if e != nil {
+		t.Error(e)
+	}
+	e = chargingChangeInAppMoney(chargingId, user_id, 12000)
+	if e != nil {
+		t.Error(e)
+	}
+}
+
+func TestWithdrawing(t *testing.T) {
+	u1, _ := GetUser(1)
+	ChangeUserMoney(1, MT_CASH, -u1.MapMoney[MT_CASH], "TestWithdrawing", false)
+	ChangeUserMoney(1, MT_CASH, 300000, "TestWithdrawing", false)
+	user_id := int64(1)
+	withdrawing_type := "HohohahaCard"
+	in_app_value := float64(70000)
+	vnd_value := float64(50000)
+	var waitGroup sync.WaitGroup
+	successfulIds := []int64{}
+	var counterLock sync.Mutex
+	for i := 0; i < 1000; i++ {
+		waitGroup.Add(1)
+		go func() {
+			withdrawingId, e := withdrawingInitDbRow(user_id, withdrawing_type, in_app_value, vnd_value)
+			counterLock.Lock()
+			if e == nil && withdrawingId != 0 {
+				successfulIds = append(successfulIds, withdrawingId)
+			}
+			counterLock.Unlock()
+			waitGroup.Done()
+		}()
+	}
+	waitGroup.Wait()
+	if len(successfulIds) != 4 {
+		t.Error()
+	}
+	// fmt.Println("successfulIds", successfulIds)
+	for i := 0; i < 10; i++ {
+		waitGroup.Add(1)
+		go func() {
+			e := withdrawingAdminDeny(successfulIds[0], "Bố thích thế thôi")
+			_ = e
+			// fmt.Println("withdrawingAdminDeny e", e)
+			waitGroup.Done()
+		}()
+	}
+	waitGroup.Wait()
+	if u1.MapMoney[MT_CASH] != 90000 {
+		t.Error()
+	}
+	e1 := withdrawingSaveThirdPartyResponse(
+		successfulIds[1], "http_request", "http_response", "transaction_id_3rd_party",
+		`{"CardCode":"123123","CardSerial":"456","CardVendor":"Viettel"}`,
+		true, "")
+	e2 := withdrawingSaveThirdPartyResponse(
+		successfulIds[2], "http_request", "http_response", "transaction_id_3rd_party",
+		"",
+		false, "Kho hết thẻ")
+	e3 := withdrawingSaveThirdPartyResponse(
+		successfulIds[3], "http_request", "http_response", "244728",
+		`{"status": "1", "bank_name": "Test Bank", "account": "977", "apikey": "357", "name": "Jon Doe", "created_at": "2018-03-18 19:53:42 Asia/Kuala_Lumpur", "telephone": "", "contract": "323", "currency": "MYR", "amount": "17.16", "transaction": "244728", "item_description": "item_description", "signature": "e5a25eddda57c97d129a9bec5623468c9afd8f5b5169fbfe6fa6cb4bd4b4312b", "item_id": "item_id", "status_message": "Accepted", "email": "user@tmt.com", "bank_account": "00000000000"}`,
+		true, "")
+	if e1 != nil || e2 != nil || e3 != nil {
+		t.Error(e1, e2, e3)
 	}
 }

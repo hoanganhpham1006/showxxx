@@ -35,6 +35,9 @@ func init() {
 		M018NotEnoughMoney:    "Không đủ tiền",
 		M019MoneyTypeNotExist: "Loại tiền không tồn tại",
 
+		M038InvalidBankName:         "M038InvalidBankName",
+		M039CanOnlyDenyWithdrawOnce: "M039CanOnlyDenyWithdrawOnce",
+
 		M023StaticServerDown: "Máy chủ lưu trữ không hoạt động",
 
 		M026StreamCreatePrivilege:     "Bạn không có quyền stream",

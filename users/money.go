@@ -3,7 +3,8 @@ package users
 import (
 	"encoding/json"
 	"errors"
-	//	"fmt"
+	// "fmt"
+	"math/rand"
 	"time"
 
 	l "github.com/daominah/livestream/language"
@@ -143,6 +144,7 @@ func changeUserMoneyHelper(
 		if databaseError == nil {
 			break
 		}
+		time.Sleep(time.Duration(100+rand.Int63n(100)) * time.Millisecond)
 	}
 	var resultError error
 	if databaseError != nil {

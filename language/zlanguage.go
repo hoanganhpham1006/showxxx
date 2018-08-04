@@ -38,6 +38,9 @@ const (
 	M018NotEnoughMoney    = "M018NotEnoughMoney"
 	M019MoneyTypeNotExist = "M019MoneyTypeNotExist"
 
+	M038InvalidBankName         = "M038InvalidBankName"
+	M039CanOnlyDenyWithdrawOnce = "M039CanOnlyDenyWithdrawOnce"
+
 	M023StaticServerDown = "M023StaticServerDown"
 
 	M026StreamCreatePrivilege     = "M026StreamCreatePrivilege"

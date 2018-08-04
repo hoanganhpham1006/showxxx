@@ -35,6 +35,9 @@ func init() {
 		M018NotEnoughMoney:    "Not enough money",
 		M019MoneyTypeNotExist: "Money type does not exist",
 
+		M038InvalidBankName:         "M038InvalidBankName",
+		M039CanOnlyDenyWithdrawOnce: "M039CanOnlyDenyWithdrawOnce",
+
 		M023StaticServerDown: "Static server is down",
 
 		M026StreamCreatePrivilege:     "Only broadcaster can broadcast",
