@@ -699,7 +699,7 @@ func Search(key string) ([]map[string]interface{}, error) {
 		if e == nil {
 			user, _ := GetUser(uid)
 			if user != nil {
-				result = append(result, user.ToShortMap())
+				result = append(result, user.ToMap())
 				duplicateIdChecker[uid] = true
 			}
 		}
