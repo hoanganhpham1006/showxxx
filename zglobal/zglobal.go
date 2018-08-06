@@ -22,8 +22,9 @@ var MessageBigCost float64
 var GameEggPayoutRate float64
 
 var MoneyIOAvailableChargingTypes map[string]bool
-var MoneyIOPaytrustMapBankNameToBankCode map[string]string
 var MoneyIORateBankCharging float64
+var MoneyIOPaytrustMapBankNameToBankCode map[string]string
+var MoneyIOPaytrustKey string
 
 func init() {
 	// default values
@@ -40,13 +41,14 @@ func init() {
 	MoneyIOAvailableChargingTypesDefault := map[string]bool{
 		"paytrust": true,
 	}
+	MoneyIORateBankChargingDefault := float64(1.0)
 	MoneyIOPaytrustMapBankNameToBankCodeDefault := map[string]string{
 		"VietinBank":  "5a8d9b3432bc7",
 		"BIDV":        "5a8dc25912217",
 		"TechComBank": "5a8ee643945a3",
 		"SacomBank":   "5a8eec3fc74e6",
 		"DongABank":   "5a904bc3775ba"}
-	MoneyIORateBankChargingDefault := float64(1.0)
+	MoneyIOPaytrustKeyDefault := "Basic TjZsWTZxNjAxQll6WkdnSzhYMERtVU1DaUFjSEVDVFE6"
 
 	// loop update values
 	go func() {
@@ -144,6 +146,16 @@ func init() {
 				fmt.Println("zglobal err", key, err)
 				MoneyIORateBankCharging = MoneyIORateBankChargingDefault
 				temp := fmt.Sprintf("%v", MoneyIORateBankChargingDefault)
+				zdatabase.SaveGlobalVar(key, temp)
+			}
+			//
+			key = "MoneyIOPaytrustKey"
+			value = zdatabase.LoadGlobalVar(key)
+			MoneyIOPaytrustKey = value
+			if err != nil {
+				fmt.Println("zglobal err", key, err)
+				MoneyIOPaytrustKey = MoneyIOPaytrustKeyDefault
+				temp := fmt.Sprintf("%v", MoneyIOPaytrustKeyDefault)
 				zdatabase.SaveGlobalVar(key, temp)
 			}
 

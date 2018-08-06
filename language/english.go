@@ -37,6 +37,8 @@ func init() {
 
 		M038InvalidBankName:         "M038InvalidBankName",
 		M039CanOnlyDenyWithdrawOnce: "M039CanOnlyDenyWithdrawOnce",
+		M040InvalidChargingType:     "M040InvalidChargingType",
+		M041InvalidWithdrawingType:  "M041InvalidWithdrawingType",
 
 		M023StaticServerDown: "Static server is down",
 
