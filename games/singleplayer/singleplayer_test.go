@@ -6,7 +6,7 @@ import (
 
 func Test01(t *testing.T) {
 	game := &Game{}
-	game.Init("slot")
+	game.Init("slot", 10000)
 	match := &Match{}
 	game.InitMatch(2, match)
 	e := match.Archive()

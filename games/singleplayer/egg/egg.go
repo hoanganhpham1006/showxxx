@@ -8,7 +8,7 @@ import (
 	"time"
 
 	"github.com/daominah/livestream/games/singleplayer"
-	"github.com/daominah/livestream/misc"
+	//	"github.com/daominah/livestream/misc"
 	"github.com/daominah/livestream/nbackend"
 	"github.com/daominah/livestream/users"
 	"github.com/daominah/livestream/zconfig"
@@ -82,9 +82,9 @@ func (match *EggMatch) Start() {
 	match.MapHammers = map[int]float64{
 		0: 0,
 		1: 1 * match.BaseMoney,
-		2: 3 * match.BaseMoney,
-		3: 5 * match.BaseMoney,
-		4: 15 * match.BaseMoney,
+		//		2: 3 * match.BaseMoney,
+		//		3: 5 * match.BaseMoney,
+		//		4: 15 * match.BaseMoney,
 	}
 	match.TurnStartedTime = time.Now()
 	match.MovesLog = make([]*Move, 0)
@@ -127,7 +127,7 @@ func (match *EggMatch) Start() {
 func (m *EggMatch) SendMove(data map[string]interface{}) error {
 	move := &Move{
 		CreatedTime: time.Now(),
-		HammerIndex: int(misc.ReadInt64(data, "HammerIndex"))}
+		HammerIndex: 1}
 	t := time.After(1 * time.Second)
 	select {
 	case m.ChanMove <- move:

@@ -292,7 +292,6 @@ func doAfterReceivingMessage(connection *nwebsocket.Connection, message []byte) 
 			d, e = SGameEggSendMove(
 				userId,
 				data,
-				m.ReadInt64(data, "HammerIndex"),
 			)
 
 		default:

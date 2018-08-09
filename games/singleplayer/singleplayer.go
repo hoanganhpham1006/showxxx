@@ -1,11 +1,11 @@
 // This package provides general feature for a game.
 // Game requirements:
 //   * user choose moneyType, baseMoney
-//	 * user or system start a match
+//      * user or system start a match
 //   * player view his recent match's results
 //   * player view big wins from all matches
 //   * game can have jackpots (users contribute to the jackpot when
-//	  they play a match)
+//       they play a match)
 //   * user can only playing one match at a time, and can get the match detail
 //   * user make move to play a match
 package singleplayer
@@ -22,6 +22,7 @@ import (
 	"github.com/daominah/livestream/misc"
 	"github.com/daominah/livestream/users"
 	//	zc "github.com/daominah/livestream/zconfig"
+	//	"github.com/daominah/livestream/games"
 	"github.com/daominah/livestream/zdatabase"
 )
 
@@ -37,7 +38,7 @@ func init() {
 
 type GameInterface interface {
 	// init game fields
-	Init(gameCode string)
+	Init(gameCode string, baseMoneyDefault float64)
 	// set basic match's fields, change MapUidToPlayingMatchId
 	InitMatch(userId int64, match MatchInterface) error
 	// call by server, not for client
@@ -48,20 +49,24 @@ type GameInterface interface {
 }
 
 type Game struct {
-	GameCode               string
-	MatchCounter           int64
+	GameCode         string
+	MatchCounter     int64
+	BaseMoneyDefault float64
+	// protect below maps
+	Mutex                  sync.Mutex `json:"-"`
 	MapUidToMoneyType      map[int64]string
 	MapUidToBaseMoney      map[int64]float64
 	MapUidToPlayingMatchId map[int64]string
 	// map matchId to matchObj
 	MapMatches map[string]MatchInterface
-	Mutex      sync.Mutex `json:"-"`
 }
 
-func (game *Game) Init(gameCode string) {
+func (game *Game) Init(gameCode string, baseMoneyDefault float64) {
 	game.GameCode = gameCode
+	game.BaseMoneyDefault = baseMoneyDefault
 	matchCounterS := zdatabase.LoadGlobalVar(matchCounterKey(game))
 	game.MatchCounter, _ = strconv.ParseInt(matchCounterS, 10, 64)
+
 	game.MapUidToMoneyType = make(map[int64]string)
 	game.MapUidToBaseMoney = make(map[int64]float64)
 	game.MapUidToPlayingMatchId = make(map[int64]string)
@@ -126,7 +131,11 @@ func (game *Game) InitMatch(userId int64, match MatchInterface) error {
 	match.SetMatchId(fmt.Sprintf("%v_%010d", game.GameCode, game.MatchCounter))
 	match.SetUserId(user.Id)
 	match.SetStartedTime(time.Now())
-	match.SetBaseMoney(game.MapUidToBaseMoney[user.Id])
+	if game.MapUidToBaseMoney[user.Id] != 0 {
+		match.SetBaseMoney(game.MapUidToBaseMoney[user.Id])
+	} else {
+		match.SetBaseMoney(game.BaseMoneyDefault)
+	}
 	game.MapUidToPlayingMatchId[user.Id] = match.GetMatchId()
 	game.MapMatches[match.GetMatchId()] = match
 	//

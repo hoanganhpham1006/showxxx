@@ -125,3 +125,7 @@ func Test06(t *testing.T) {
 	list = []int64{}
 	_ = ChoiceInt64s(list)
 }
+
+func TestNormalDistribution(t *testing.T) {
+
+}

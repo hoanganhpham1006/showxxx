@@ -22,8 +22,11 @@ import (
 	"github.com/daominah/livestream/users"
 )
 
-// read only map
+// read only map after the main func started
 var MapSGames = make(map[string]singleplayer.GameInterface)
+
+// read only map after the main func started
+// var MapMGames = make(map[string]multiplayer.GameInterface)
 
 func init() {
 	fmt.Println("")
@@ -42,9 +45,7 @@ func main() {
 
 	//
 	MapSGames[egg.GAME_CODE_EGG] = &egg.EggGame{}
-	for gameCode, game := range MapSGames {
-		game.Init(gameCode)
-	}
+	MapSGames[egg.GAME_CODE_EGG].Init(egg.GAME_CODE_EGG, 100)
 
 	// listen to clients
 	nbackend.InitBackend(doAfterReceivingMessage)
