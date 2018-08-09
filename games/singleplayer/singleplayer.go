@@ -38,7 +38,7 @@ func init() {
 
 type GameInterface interface {
 	// init game fields
-	Init(gameCode string, baseMoneyDefault float64)
+	Init(gameCode string, moneyTypeDefault string, baseMoneyDefault float64)
 	// set basic match's fields, change MapUidToPlayingMatchId
 	InitMatch(userId int64, match MatchInterface) error
 	// call by server, not for client
@@ -51,6 +51,7 @@ type GameInterface interface {
 type Game struct {
 	GameCode         string
 	MatchCounter     int64
+	MoneyTypeDefault string
 	BaseMoneyDefault float64
 	// protect below maps
 	Mutex                  sync.Mutex `json:"-"`
@@ -58,11 +59,13 @@ type Game struct {
 	MapUidToBaseMoney      map[int64]float64
 	MapUidToPlayingMatchId map[int64]string
 	// map matchId to matchObj
-	MapMatches map[string]MatchInterface
+	MapMatches map[string]MatchInterface `json:"-"`
 }
 
-func (game *Game) Init(gameCode string, baseMoneyDefault float64) {
+func (game *Game) Init(
+	gameCode string, moneyTypeDefault string, baseMoneyDefault float64) {
 	game.GameCode = gameCode
+	game.MoneyTypeDefault = moneyTypeDefault
 	game.BaseMoneyDefault = baseMoneyDefault
 	matchCounterS := zdatabase.LoadGlobalVar(matchCounterKey(game))
 	game.MatchCounter, _ = strconv.ParseInt(matchCounterS, 10, 64)
@@ -118,7 +121,10 @@ func (game *Game) InitMatch(userId int64, match MatchInterface) error {
 	game.Mutex.Lock()
 	defer game.Mutex.Unlock()
 	if game.MapUidToMoneyType[user.Id] == "" {
-		game.MapUidToMoneyType[user.Id] = users.MT_CASH
+		game.MapUidToMoneyType[user.Id] = game.MoneyTypeDefault
+	}
+	if game.MapUidToBaseMoney[user.Id] == 0 {
+		game.MapUidToBaseMoney[user.Id] = game.BaseMoneyDefault
 	}
 	if game.MapUidToPlayingMatchId[user.Id] != "" {
 		return errors.New(l.Get(l.M036GameOnlyOneMatchAtATime))
@@ -131,11 +137,7 @@ func (game *Game) InitMatch(userId int64, match MatchInterface) error {
 	match.SetMatchId(fmt.Sprintf("%v_%010d", game.GameCode, game.MatchCounter))
 	match.SetUserId(user.Id)
 	match.SetStartedTime(time.Now())
-	if game.MapUidToBaseMoney[user.Id] != 0 {
-		match.SetBaseMoney(game.MapUidToBaseMoney[user.Id])
-	} else {
-		match.SetBaseMoney(game.BaseMoneyDefault)
-	}
+	match.SetBaseMoney(game.MapUidToBaseMoney[user.Id])
 	game.MapUidToPlayingMatchId[user.Id] = match.GetMatchId()
 	game.MapMatches[match.GetMatchId()] = match
 	//

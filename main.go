@@ -45,7 +45,7 @@ func main() {
 
 	//
 	MapSGames[egg.GAME_CODE_EGG] = &egg.EggGame{}
-	MapSGames[egg.GAME_CODE_EGG].Init(egg.GAME_CODE_EGG, 100)
+	MapSGames[egg.GAME_CODE_EGG].Init(egg.GAME_CODE_EGG, users.MT_CASH, 100)
 
 	// listen to clients
 	nbackend.InitBackend(doAfterReceivingMessage)

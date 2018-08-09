@@ -127,5 +127,12 @@ func Test06(t *testing.T) {
 }
 
 func TestNormalDistribution(t *testing.T) {
-
+	a := []float64{}
+	for i := 0; i < 100; i++ {
+		r := RandNormDist(5, 5.0/3)
+		a = append(a, r)
+		fmt.Println(r)
+	}
+	mean, deviation := CalcMeanAndDeviation(a)
+	fmt.Println("mean, deviation", mean, deviation)
 }
