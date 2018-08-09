@@ -8,6 +8,7 @@ import (
 
 	"github.com/daominah/livestream/conversations"
 	//	"github.com/daominah/livestream/games/singleplayer"
+	"github.com/daominah/livestream/games/multiplayer/car"
 	"github.com/daominah/livestream/games/singleplayer/egg"
 	l "github.com/daominah/livestream/language"
 	"github.com/daominah/livestream/nbackend"
@@ -468,4 +469,31 @@ func SGameEggCreateMatch(userId int64) (
 	match := &egg.EggMatch{}
 	err := game.InitMatch(userId, match)
 	return nil, err
+}
+
+func MGameCarSendMove(
+	userId int64, data map[string]interface{}, args ...interface{}) (
+	map[string]interface{}, error) {
+	game := MapMGames[car.GAME_CODE]
+	if game == nil {
+		return nil, errors.New(l.Get(l.M035GameInvalidGameCode))
+	}
+	match := game.GetPlayingMatch(userId)
+	if match == nil {
+		return nil, errors.New(l.Get(l.M037GameInvalidMatchId))
+	}
+	err := match.SendMove(data)
+	return nil, err
+}
+
+func MGameCarGetCurrentMatch() (map[string]interface{}, error) {
+	game := MapMGames[car.GAME_CODE]
+	if game == nil {
+		return nil, errors.New(l.Get(l.M035GameInvalidGameCode))
+	}
+	carGame, isOk := game.(*car.CarGame)
+	if !isOk {
+		return nil, errors.New("carGame, !isOk")
+	}
+	return carGame.GetCurrentMatch()
 }

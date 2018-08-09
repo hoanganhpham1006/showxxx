@@ -62,6 +62,7 @@ type Game struct {
 func (game *Game) Init(
 	gameCode string, moneyTypeDefault string, baseMoneyDefault float64) {
 	game.GameCode = gameCode
+	game.MoneyTypeDefault = moneyTypeDefault
 	game.BaseMoneyDefault = baseMoneyDefault
 	matchCounterS := zdatabase.LoadGlobalVar(matchCounterKey(game))
 	game.MatchCounter, _ = strconv.ParseInt(matchCounterS, 10, 64)
@@ -128,7 +129,10 @@ func (game *Game) InitMatch(match MatchInterface) error {
 }
 
 func (game *Game) FinishMatch(match MatchInterface) {
-	match.Archive()
+	err := match.Archive()
+	if err != nil {
+		fmt.Println("match.Archive err", err)
+	}
 	game.Mutex.Lock()
 	defer game.Mutex.Unlock()
 	for userId, _ := range match.GetUserIds() {

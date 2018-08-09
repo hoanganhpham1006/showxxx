@@ -289,9 +289,14 @@ func doAfterReceivingMessage(connection *nwebsocket.Connection, message []byte) 
 		case "SGameEggCreateMatch":
 			d, e = SGameEggCreateMatch(userId)
 		case "SGameEggSendMove":
-			d, e = SGameEggSendMove(
-				userId,
-				data,
+			d, e = SGameEggSendMove(userId, data)
+
+		case "MGameCarGetCurrentMatch":
+			d, e = MGameCarGetCurrentMatch()
+		case "MGameCarSendMove":
+			d, e = MGameCarSendMove(userId, data,
+				m.ReadInt64(data, "CarIndex"),
+				m.ReadFloat64(data, "BetValue"),
 			)
 
 		default:

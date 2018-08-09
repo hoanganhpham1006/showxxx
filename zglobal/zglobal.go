@@ -20,6 +20,7 @@ var CheerTeamCaptainProfit float64
 var MessageBigCost float64
 
 var GameEggPayoutRate float64
+var GameCarPayoutRate float64
 
 var MoneyIOAvailableChargingTypes map[string]bool
 var MoneyIORateBankCharging float64
@@ -37,6 +38,7 @@ func init() {
 	MessageBigCostDefault := float64(1000)
 
 	GameEggPayoutRateDefault := float64(0.90)
+	GameCarPayoutRateDefault := float64(0.90)
 
 	MoneyIOAvailableChargingTypesDefault := map[string]bool{
 		"paytrust": true,
@@ -115,6 +117,17 @@ func init() {
 				fmt.Println("zglobal err", key, err)
 				GameEggPayoutRate = GameEggPayoutRateDefault
 				temp := fmt.Sprintf("%v", GameEggPayoutRateDefault)
+				zdatabase.SaveGlobalVar(key, temp)
+			}
+
+			//
+			key = "GameCarPayoutRate"
+			value = zdatabase.LoadGlobalVar(key)
+			GameCarPayoutRate, err = strconv.ParseFloat(value, 64)
+			if err != nil {
+				fmt.Println("zglobal err", key, err)
+				GameCarPayoutRate = GameCarPayoutRateDefault
+				temp := fmt.Sprintf("%v", GameCarPayoutRateDefault)
 				zdatabase.SaveGlobalVar(key, temp)
 			}
 

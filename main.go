@@ -13,6 +13,8 @@ import (
 	"github.com/daominah/livestream/zdatabase"
 	//	"github.com/daominah/livestream/zglobal"
 	"github.com/daominah/livestream/admintool"
+	"github.com/daominah/livestream/games/multiplayer"
+	"github.com/daominah/livestream/games/multiplayer/car"
 	"github.com/daominah/livestream/games/singleplayer"
 	"github.com/daominah/livestream/games/singleplayer/egg"
 	"github.com/daominah/livestream/misc"
@@ -24,6 +26,7 @@ import (
 
 // read only map after the main func started
 var MapSGames = make(map[string]singleplayer.GameInterface)
+var MapMGames = make(map[string]multiplayer.GameInterface)
 
 // read only map after the main func started
 // var MapMGames = make(map[string]multiplayer.GameInterface)
@@ -44,8 +47,14 @@ func main() {
 	zdatabase.InitTables()
 
 	//
-	MapSGames[egg.GAME_CODE_EGG] = &egg.EggGame{}
-	MapSGames[egg.GAME_CODE_EGG].Init(egg.GAME_CODE_EGG, users.MT_CASH, 100)
+	eggGame := &egg.EggGame{}
+	eggGame.Init(egg.GAME_CODE_EGG, users.MT_CASH, 100)
+	MapSGames[egg.GAME_CODE_EGG] = eggGame
+
+	carGame := &car.CarGame{}
+	carGame.Init(car.GAME_CODE, users.MT_CASH, 100)
+	carGame.PeriodicallyCreateMatch()
+	MapMGames[car.GAME_CODE] = carGame
 
 	// listen to clients
 	nbackend.InitBackend(doAfterReceivingMessage)

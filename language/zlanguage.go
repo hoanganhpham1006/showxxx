@@ -56,6 +56,8 @@ const (
 	M035GameInvalidGameCode       = "M035GameInvalidGameCode"
 	M036GameOnlyOneMatchAtATime   = "M036GameOnlyOneMatchAtATime"
 	M037GameInvalidMatchId        = "M037GameInvalidMatchId"
+	M042GameInvalidCarIndex       = "M042GameInvalidCarIndex"
+	M043MovingDurationEnded       = "M043MovingDurationEnded"
 )
 
 // map msgName to msgContent

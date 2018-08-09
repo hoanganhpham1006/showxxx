@@ -2,12 +2,13 @@ package car
 
 import (
 	"encoding/json"
-	"math/rand"
-	//	"fmt"
 	"errors"
+	"fmt"
+	"math/rand"
 	"time"
 
 	"github.com/daominah/livestream/games/multiplayer"
+	l "github.com/daominah/livestream/language"
 	"github.com/daominah/livestream/misc"
 	"github.com/daominah/livestream/nbackend"
 	"github.com/daominah/livestream/users"
@@ -16,29 +17,54 @@ import (
 )
 
 const (
-	GAME_CODE_EGG = "car"
-	DURATION_TURN = 20 * time.Second
+	GAME_CODE      = "car"
+	DURATION_MATCH = 10 * time.Second
+	DURATION_IDLE  = 3 * time.Second
+	NUMBER_OF_CARS = 4
 )
 
 func init() {
+	_ = fmt.Println
 	rand.Seed(time.Now().Unix())
 }
 
 type CarGame struct {
 	multiplayer.Game
+	SharedMatch *CarMatch
+}
+
+func (game *CarGame) GetPlayingMatch(userId int64) multiplayer.MatchInterface {
+	return game.SharedMatch
+}
+
+func (game *CarGame) PeriodicallyCreateMatch() {
+	go func() {
+		for {
+			match := &CarMatch{}
+			game.InitMatch(match)
+			game.SharedMatch = match
+			time.Sleep(DURATION_MATCH + DURATION_IDLE)
+		}
+	}()
+}
+
+func (game *CarGame) GetCurrentMatch() (map[string]interface{}, error) {
+	sharedMatch := game.SharedMatch
+	if sharedMatch == nil {
+		return nil, errors.New("sharedMatch == nil")
+	}
+	return game.SharedMatch.ToMap(), nil
 }
 
 type CarMatch struct {
 	multiplayer.Match
-
-	// map hammer to its cost
-	MapHammers map[int]float64
+	MapUserIdToMapCarToValue map[int64]map[int]float64
 
 	// to calculate turn remaining duration
-	TurnStartedTime time.Time
-	UserWonMoney    float64
-	UserLostMoney   float64
+	StartedTime     time.Time
 	MovesLog        []*Move
+	WinningCarIndex int
+	IsFinished      bool
 
 	ChanMove    chan *Move `json:"-"`
 	ChanMoveErr chan error `json:"-"`
@@ -47,7 +73,7 @@ type CarMatch struct {
 type Move struct {
 	UserId      int64
 	CarIndex    int
-	Bet         float64
+	BetValue    float64
 	CreatedTime time.Time
 }
 
@@ -73,7 +99,7 @@ func (match *CarMatch) UpdateMatch(command string) {
 	data := match.ToMap()
 	data["Command"] = command
 	data["TurnRemainingSeconds"] =
-		match.TurnStartedTime.Add(DURATION_TURN).Sub(time.Now()).Seconds()
+		match.StartedTime.Add(DURATION_MATCH).Sub(time.Now()).Seconds()
 	match.Mutex.Lock()
 	for uid, _ := range match.MapUserIds {
 		nbackend.WriteMapToUserId(uid, nil, data)
@@ -85,46 +111,50 @@ func (match *CarMatch) UpdateMatch(command string) {
 
 func (match *CarMatch) Start() {
 	match.Mutex.Lock()
-	match.MapHammers = map[int]float64{
-		0: 0,
-		1: 1 * match.BaseMoney,
-		//		2: 3 * match.BaseMoney,
-		//		3: 5 * match.BaseMoney,
-		//		4: 15 * match.BaseMoney,
-	}
-	match.TurnStartedTime = time.Now()
+	match.MapUserIdToMapCarToValue = make(map[int64]map[int]float64)
+	match.StartedTime = time.Now()
 	match.MovesLog = make([]*Move, 0)
 	match.ChanMove = make(chan *Move)
 	match.ChanMoveErr = make(chan error)
 	match.Mutex.Unlock()
 	//
 	match.UpdateMatch(multiplayer.COMMAND_MATCH_START)
-	for i := 0; i < 1; i++ {
-		turnTimeout := time.After(DURATION_TURN)
-	LoopWaitingLegalMove:
-		for {
+	matchTimeout := time.After(DURATION_MATCH)
+LoopWaitingLegalMove:
+	for {
+		select {
+		case move := <-match.ChanMove:
+			err := match.MakeMove(move)
+			if err == nil {
+				match.UpdateMatch(multiplayer.COMMAND_MATCH_UPDATE)
+			}
 			select {
-			case move := <-match.ChanMove:
-				err := match.MakeMove(move)
-				if err == nil {
-					match.TurnStartedTime = time.Now()
-				}
-				select {
-				case match.ChanMoveErr <- err:
-				default:
-				}
-				if err == nil {
-					break LoopWaitingLegalMove
-				}
-			case <-turnTimeout:
-				match.TurnStartedTime = time.Now()
-				break LoopWaitingLegalMove
+			case match.ChanMoveErr <- err:
+			default:
+			}
+		case <-matchTimeout:
+			break LoopWaitingLegalMove
+		}
+	}
+	// betting duration is over
+	match.Mutex.Lock()
+	match.IsFinished = true
+	match.WinningCarIndex = rand.Intn(NUMBER_OF_CARS)
+	for uid, mapCarToValue := range match.MapUserIdToMapCarToValue {
+		for carI, value := range mapCarToValue {
+			if carI == match.WinningCarIndex {
+				winningMoney := 4 * value * zglobal.GameCarPayoutRate
+				match.MapUserIdToResultChangedMoney[uid] += winningMoney
+				users.ChangeUserMoney(uid, match.MoneyType, winningMoney,
+					users.REASON_PLAY_GAME, false)
 			}
 		}
-		match.UpdateMatch(multiplayer.COMMAND_MATCH_UPDATE)
 	}
+	for _, changedMoney := range match.MapUserIdToResultChangedMoney {
+		match.ResultChangedMoney += changedMoney
+	}
+	match.Mutex.Unlock()
 	//
-	match.ResultChangedMoney = match.UserWonMoney - match.UserLostMoney
 	match.ResultDetail = match.String()
 	match.Game.FinishMatch(match)
 	match.UpdateMatch(multiplayer.COMMAND_MATCH_FINISH)
@@ -132,10 +162,14 @@ func (match *CarMatch) Start() {
 
 func (m *CarMatch) SendMove(data map[string]interface{}) error {
 	move := &Move{
-		UserId:      misc.ReadInt64(data, "UserId"),
+		UserId:      misc.ReadInt64(data, "SourceUserId"),
 		CarIndex:    int(misc.ReadInt64(data, "CarIndex")),
-		Bet:         misc.ReadFloat64(data, "Bet"),
+		BetValue:    misc.ReadFloat64(data, "BetValue"),
 		CreatedTime: time.Now()}
+	user, err := users.GetUser(move.UserId)
+	if user == nil {
+		return err
+	}
 	t := time.After(1 * time.Second)
 	select {
 	case m.ChanMove <- move:
@@ -147,61 +181,28 @@ func (m *CarMatch) SendMove(data map[string]interface{}) error {
 			return errors.New("<-m.ChanMoveErr timeout")
 		}
 	case <-t:
-		return errors.New("m.ChanMove <- move timeout")
+		return errors.New(l.Get(l.M043MovingDurationEnded))
 	}
-}
-
-// calc payRate from random number
-// input = rand.Intn(10000)
-func calcRate(r int) float64 {
-	var rate float64
-	switch {
-	case (0 <= r) && (r < 3000):
-		rate = 1.25
-	case 3000 <= r && r < 5500:
-		rate = 1.1
-	case 5500 <= r && r < 7500:
-		rate = 0.5
-	case 7500 <= r && r < 9000:
-		rate = 0.2
-	case 9000 <= r && r < 9999:
-		rate = 2.1
-	case r == 9999:
-		rate = 100
-	}
-	return rate
-}
-
-func calcAvarageProfit() float64 {
-	ap := float64(0)
-	for i := 0; i < 10000; i++ {
-		ap += 0.0001 * calcRate(i)
-	}
-	return ap
 }
 
 func (m *CarMatch) MakeMove(move *Move) error {
+	m.AddUserId(move.UserId)
 	m.Mutex.Lock()
 	defer m.Mutex.Unlock()
-	user, err := users.GetUser(move.UserId)
-	if user == nil {
-		return err
+	if move.CarIndex >= NUMBER_OF_CARS || move.CarIndex <= 0 {
+		return errors.New(l.Get(l.M042GameInvalidCarIndex))
 	}
 	m.MovesLog = append(m.MovesLog, move)
-	requiringMoney := move.Bet
-	_, err = users.ChangeUserMoney(move.UserId, m.MoneyType, -requiringMoney,
+	requiringMoney := move.BetValue
+	_, err := users.ChangeUserMoney(move.UserId, m.MoneyType, -requiringMoney,
 		users.REASON_PLAY_GAME, true)
 	if err != nil {
 		return err
 	}
-	//
-	r := rand.Intn(10000)
-	rate := calcRate(r)
-	wonMoney := rate * requiringMoney
-	wonMoney = zglobal.GameEggPayoutRate * wonMoney
-	users.ChangeUserMoney(move.UserId, m.MoneyType, wonMoney,
-		users.REASON_PLAY_GAME, false)
-	m.UserLostMoney += requiringMoney
-	m.UserWonMoney += wonMoney
+	if _, isIn := m.MapUserIdToMapCarToValue[move.UserId]; !isIn {
+		m.MapUserIdToMapCarToValue[move.UserId] = make(map[int]float64)
+	}
+	m.MapUserIdToMapCarToValue[move.UserId][move.CarIndex] += requiringMoney
+	m.MapUserIdToResultChangedMoney[move.UserId] -= requiringMoney
 	return nil
 }
