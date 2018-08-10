@@ -59,6 +59,7 @@ func (game *CarGame) GetCurrentMatch() (map[string]interface{}, error) {
 type CarMatch struct {
 	multiplayer.Match
 	MapUserIdToMapCarToValue map[int64]map[int]float64
+	MapUserIdToWinningMoney  map[int64]float64
 
 	// to calculate turn remaining duration
 	StartedTime     time.Time
@@ -112,6 +113,7 @@ func (match *CarMatch) UpdateMatch(command string) {
 func (match *CarMatch) Start() {
 	match.Mutex.Lock()
 	match.MapUserIdToMapCarToValue = make(map[int64]map[int]float64)
+	match.MapUserIdToWinningMoney = make(map[int64]float64)
 	match.StartedTime = time.Now()
 	match.MovesLog = make([]*Move, 0)
 	match.ChanMove = make(chan *Move)
@@ -145,6 +147,7 @@ LoopWaitingLegalMove:
 			if carI == match.WinningCarIndex {
 				winningMoney := 4 * value * zglobal.GameCarPayoutRate
 				match.MapUserIdToResultChangedMoney[uid] += winningMoney
+				match.MapUserIdToWinningMoney[uid] += winningMoney
 				users.ChangeUserMoney(uid, match.MoneyType, winningMoney,
 					users.REASON_PLAY_GAME, false)
 			}

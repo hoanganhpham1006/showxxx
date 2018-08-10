@@ -453,21 +453,12 @@ func SGameEggSendMove(
 	if game == nil {
 		return nil, errors.New(l.Get(l.M035GameInvalidGameCode))
 	}
-	match := game.GetPlayingMatch(userId)
-	if match == nil {
-		return nil, errors.New(l.Get(l.M037GameInvalidMatchId))
-	}
-	err := match.SendMove(data)
-	return nil, err
-}
-func SGameEggCreateMatch(userId int64) (
-	map[string]interface{}, error) {
-	game := MapSGames[egg.GAME_CODE_EGG]
-	if game == nil {
-		return nil, errors.New(l.Get(l.M035GameInvalidGameCode))
-	}
 	match := &egg.EggMatch{}
 	err := game.InitMatch(userId, match)
+	if err != nil {
+		return nil, err
+	}
+	err = match.SendMove(data)
 	return nil, err
 }
 

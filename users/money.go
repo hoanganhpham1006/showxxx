@@ -8,6 +8,7 @@ import (
 	"time"
 
 	l "github.com/daominah/livestream/language"
+	"github.com/daominah/livestream/nbackend"
 	"github.com/daominah/livestream/rank"
 	"github.com/daominah/livestream/zdatabase"
 )
@@ -161,7 +162,14 @@ func changeUserMoneyHelper(
 			MapIdToUser[userId].Mutex.Unlock()
 		}
 		GMutex.Unlock()
+		//
+		nbackend.WriteMapToUserId(userId, nil, map[string]interface{}{
+			"Command":   "MoneyChanged",
+			"MoneyType": moneyType,
+			"NewVal":    newVal,
+		})
 	}
+
 	//
 	return newVal, resultError, moneyLogId
 }
@@ -368,6 +376,17 @@ func TransferMoney(
 			rank.RANK_RECEIVED_CASH_ALL} {
 			rank.ChangeKey(rankId, targetId, transferValue)
 		}
+		//
+		nbackend.WriteMapToUserId(userId, nil, map[string]interface{}{
+			"Command":   "MoneyChanged",
+			"MoneyType": moneyType,
+			"NewVal":    moneyAfterSender,
+		})
+		nbackend.WriteMapToUserId(targetId, nil, map[string]interface{}{
+			"Command":   "MoneyChanged",
+			"MoneyType": moneyType,
+			"NewVal":    moneyAfterTarget,
+		})
 	}
 	//
 	return moneyAfterSender, moneyAfterTarget, resultError

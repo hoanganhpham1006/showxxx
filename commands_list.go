@@ -286,8 +286,6 @@ func doAfterReceivingMessage(connection *nwebsocket.Connection, message []byte) 
 				userId,
 			)
 
-		case "SGameEggCreateMatch":
-			d, e = SGameEggCreateMatch(userId)
 		case "SGameEggSendMove":
 			d, e = SGameEggSendMove(userId, data)
 
