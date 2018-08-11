@@ -177,7 +177,7 @@ func RankGetLeaderBoard(rankId int64) (
 		if user == nil {
 			continue
 		}
-		userRow := user.ToShortMap()
+		userRow := user.ToMap()
 		userRow["RKey"] = row.RKey
 		userRows = append(userRows, userRow)
 	}
@@ -244,7 +244,7 @@ func ConversationAddMember(
 		return nil, errors.New(l.Get(l.M003ConversationOutsider))
 	}
 	newConversationId, e := conversations.AddMember(conversationId, newMemberId, isModerator)
-	return map[string]interface{}{"NewConversationId:": newConversationId}, e
+	return map[string]interface{}{"NewConversationId": newConversationId}, e
 }
 func ConversationRemoveMember(
 	userId int64, conversationId int64, memberId int64) (

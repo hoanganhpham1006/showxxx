@@ -16,7 +16,7 @@ import (
 )
 
 const (
-	LEADERBOARD_LIMIT         = int(500)
+	LEADERBOARD_LIMIT         = int(100)
 	LEADERBOARD_UPDATE_PERIOD = 120 * time.Second
 
 	RANK_TEST1 = int64(1)
