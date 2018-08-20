@@ -61,6 +61,16 @@ func doAfterReceivingMessage(connection *nwebsocket.Connection, message []byte) 
 				m.ReadString(data, "DeviceName"),
 				m.ReadString(data, "AppName"))
 
+		case "RankGetLeaderBoard":
+			d, e = RankGetLeaderBoard(
+				m.ReadInt64(data, "RankId"), // RANK_RECEIVED_CASH_DAY   = int64(3), RANK_RECEIVED_CASH_WEEK  = int64(4), RANK_RECEIVED_CASH_MONTH = int64(5), RANK_RECEIVED_CASH_ALL   = int64(6), , RANK_SENT_CASH_DAY   = int64(7), RANK_SENT_CASH_WEEK  = int64(8), RANK_SENT_CASH_MONTH = int64(9), RANK_SENT_CASH_ALL   = int64(10), , RANK_PURCHASED_CASH_DAY   = int64(11), RANK_PURCHASED_CASH_WEEK  = int64(12), RANK_PURCHASED_CASH_MONTH = int64(13), RANK_PURCHASED_CASH_ALL   = int64(14), , RANK_N_FOLLOWERS_WEEK = int64(15), RANK_N_FOLLOWERS_ALL  = int64(16)
+			)
+		case "StreamAllSummaries":
+			d, e = StreamAllSummaries()
+		case "UserDetail":
+			d, e = UserDetail(
+				m.ReadInt64(data, "UserId"))
+
 		default:
 			d = map[string]interface{}{"message": string(message)}
 			e = errors.New("Not logged in." + l.Get(l.M010CommandNotSupported))
