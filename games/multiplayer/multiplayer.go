@@ -45,6 +45,7 @@ type GameInterface interface {
 	// call by server, not for client
 	FinishMatch(match MatchInterface)
 	GetPlayingMatch(userId int64) MatchInterface
+	SetPlayingMatch(userId int64, matchId string)
 }
 
 type Game struct {
@@ -150,6 +151,13 @@ func (game *Game) GetPlayingMatch(userId int64) MatchInterface {
 	return match
 }
 
+// included game.Mutex.Lock
+func (game *Game) SetPlayingMatch(userId int64, matchId string) {
+	game.Mutex.Lock()
+	game.MapUidToPlayingMatchId[userId] = matchId
+	defer game.Mutex.Unlock()
+}
+
 // _____________________________________________________________
 
 func (match *Match) Start() {}
@@ -204,10 +212,13 @@ func (match *Match) SetMatchId(a string) {
 	match.MatchId = a
 }
 
+// include gameLock and matchLock
 func (match *Match) AddUserId(a int64) {
+	match.Game.SetPlayingMatch(a, match.MatchId)
 	match.Mutex.Lock()
 	defer match.Mutex.Unlock()
 	match.MapUserIds[a] = true
+
 }
 
 func (match *Match) SetStartedTime(a time.Time) {

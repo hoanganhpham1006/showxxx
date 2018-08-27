@@ -70,6 +70,10 @@ func doAfterReceivingMessage(connection *nwebsocket.Connection, message []byte) 
 		case "UserDetail":
 			d, e = UserDetail(
 				m.ReadInt64(data, "UserId"))
+		case "UserSearch":
+			d, e = UserSearch(
+				m.ReadString(data, "Key"),
+			)
 
 		default:
 			d = map[string]interface{}{"message": string(message)}
