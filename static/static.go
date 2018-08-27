@@ -31,7 +31,7 @@ func main() {
 			http.Error(w, "Method not allowed", 405)
 			return
 		}
-		limitNBytes := int64(10) * 1024 * 1024
+		limitNBytes := int64(1024) * 1024 * 1024
 		body, err := ioutil.ReadAll(io.LimitReader(r.Body, limitNBytes))
 		if err != nil {
 			http.Error(w, "Invalid body", 406)
