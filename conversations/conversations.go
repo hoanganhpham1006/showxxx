@@ -377,7 +377,10 @@ func CreateConversation(
 	memberIds = misc.SortedInt64s(memberIds)
 	names := []string{}
 	for _, uid := range memberIds {
-		name, _ := users.GetProfilenameById(uid)
+		name, e := users.GetProfilenameById(uid)
+		if e != nil {
+			return 0, e
+		}
 		names = append(names, name)
 	}
 	conversationName := strings.Join(names, ", ")
