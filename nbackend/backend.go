@@ -51,7 +51,7 @@ func (proxy *Proxy) ConnectToBackend() {
 					go conn.WritePump(proxy.doAfterClosingBackendConnection)
 					go conn.WriteMap(nil, map[string]interface{}{
 						"Command": "ProxyConnect",
-						"ProxyId": time.Now().UnixNano()})
+						"ProxyId": proxy.ProxyId})
 				} else {
 					fmt.Println("ConnectToBackend err", e)
 					time.Sleep(1 * time.Second)
