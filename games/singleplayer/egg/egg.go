@@ -22,6 +22,7 @@ const (
 
 func init() {
 	rand.Seed(time.Now().Unix())
+	_ = zconfig.TPrint
 }
 
 type EggGame struct {
@@ -73,8 +74,8 @@ func (match *EggMatch) UpdateMatch(command string) {
 	data["TurnRemainingSeconds"] =
 		match.TurnStartedTime.Add(DURATION_TURN).Sub(time.Now()).Seconds()
 	nbackend.WriteMapToUserId(match.UserId, nil, data)
-	zconfig.TPrint("_____________________________________")
-	zconfig.TPrint(time.Now(), command, data)
+	//	zconfig.TPrint("_____________________________________")
+	//	zconfig.TPrint(time.Now(), command, data)
 }
 
 func (match *EggMatch) Start() {

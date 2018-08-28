@@ -25,6 +25,7 @@ const (
 
 func init() {
 	_ = fmt.Println
+	_ = zconfig.TPrint
 	rand.Seed(time.Now().Unix())
 }
 
@@ -106,8 +107,8 @@ func (match *CarMatch) UpdateMatch(command string) {
 		nbackend.WriteMapToUserId(uid, nil, data)
 	}
 	match.Mutex.Unlock()
-	zconfig.TPrint("_____________________________________")
-	zconfig.TPrint(time.Now(), command, data)
+	// zconfig.TPrint("_____________________________________")
+	// zconfig.TPrint(time.Now(), command, data)
 }
 
 func (match *CarMatch) Start() {
