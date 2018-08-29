@@ -424,3 +424,33 @@ CREATE TABLE finance_withdraw (
 CREATE INDEX finance_withdraw_i01 ON public.finance_withdraw (created_time);
 CREATE INDEX finance_withdraw_i02 ON public.finance_withdraw (user_id, created_time);
 CREATE INDEX finance_withdraw_i03 ON public.finance_withdraw (money_log_id);
+
+
+
+CREATE TABLE video (
+    id BIGSERIAL, CONSTRAINT video_pkey PRIMARY KEY (id),
+    name TEXT DEFAULT '',
+    cate_id BIGINT DEFAULT 0,
+    image TEXT DEFAULT '',
+    video TEXT DEFAULT '',
+    price DOUBLE PRECISION DEFAULT 0,
+    description TEXT DEFAULT '',
+    created_time TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+
+
+CREATE TABLE video_categories (
+  id BIGSERIAL, CONSTRAINT video_categories_pkey PRIMARY KEY (id),
+  name TEXT DEFAULT '',
+  description TEXT DEFAULT '',
+  created_time TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+
+CREATE TABLE video_buyer (
+    video_id BIGINT DEFAULT 0 REFERENCES video (id),
+    user_id BIGINT DEFAULT 0 REFERENCES "user" (id),
+    bought_time TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    CONSTRAINT video_buyer_pkey PRIMARY KEY (video_id, user_id)
+);

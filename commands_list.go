@@ -311,6 +311,21 @@ func doAfterReceivingMessage(connection *nwebsocket.Connection, message []byte) 
 				m.ReadFloat64(data, "BetValue"),
 			)
 
+		case "AdnvidGetListVideoCategories":
+			d, e = AdnvidGetListVideoCategories()
+		case "AdnvidGetListVideos":
+			d, e = AdnvidGetListVideos(
+				userId,
+				m.ReadInt64(data, "Limit"),
+				m.ReadInt64(data, "Offset"),
+				m.ReadString(data, "OrderBy"),
+			)
+		case "AdnvidBuyVideo":
+			d, e = AdnvidBuyVideo(
+				userId,
+				m.ReadInt64(data, "VideoId"),
+			)
+
 		default:
 			d = map[string]interface{}{"message": string(message)}
 			e = errors.New("Logged in. " + l.Get(l.M010CommandNotSupported))

@@ -7,4 +7,4 @@
 * Build and run main server.
 
 ## Documentation
-Read files in folder `./document`
+Read files in folder `./zdocument`

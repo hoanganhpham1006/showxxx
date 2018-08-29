@@ -53,5 +53,7 @@ func init() {
 		M037GameInvalidMatchId:        "M037GameInvalidMatchId",
 		M042GameInvalidCarIndex:       "M042GameInvalidCarIndex",
 		M043MovingDurationEnded:       "M043MovingDurationEnded",
+
+		M044AdnvidHasBought: "M044AdnvidHasBought",
 	}
 }
