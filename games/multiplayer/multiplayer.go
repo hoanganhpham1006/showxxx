@@ -132,7 +132,7 @@ func (game *Game) InitMatch(match MatchInterface) error {
 func (game *Game) FinishMatch(match MatchInterface) {
 	err := match.Archive()
 	if err != nil {
-		fmt.Println("match.Archive err", err)
+		// fmt.Println("match.Archive err", err)
 	}
 	game.Mutex.Lock()
 	defer game.Mutex.Unlock()
