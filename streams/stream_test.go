@@ -8,11 +8,14 @@ import (
 
 	l "github.com/daominah/livestream/language"
 	"github.com/daominah/livestream/misc"
+	"github.com/daominah/livestream/nbackend"
 )
 
 func Test01(t *testing.T) {
 	_ = fmt.Println
 	_ = time.Sleep
+	nbackend.InitBackend(nil)
+
 	stream, e := CreateStream(2, "stream cua 2", "anh2")
 	if e != nil {
 		t.Error(e)
@@ -42,12 +45,13 @@ func Test01(t *testing.T) {
 	ViewStream(7, 4)
 	ViewStream(8, 4)
 	ViewStream(9, 4)
-	streams := StreamAllSummaries()
+	streams := StreamAllSummaries(false)
 	if misc.ReadFloat64(streams[0], "BroadcasterId") != 4 ||
 		misc.ReadFloat64(streams[0], "NViewers") != 5 {
 		t.Error()
 	}
-	//	fmt.Println("streams", streams)
+	// fmt.Println("streams", streams)
+	fmt.Println(MapUserIdToStream[4].ToMap())
 
 	e = FinishStream(2)
 	FinishStream(4)

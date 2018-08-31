@@ -89,6 +89,7 @@ func (proxy *Proxy) doAfterReceivingBackendMessage(
 	}
 	command := misc.ReadString(data, "Command")
 	clientConnId := misc.ReadInt64(data, "ConnId")
+	// SourceUserId
 	userId := misc.ReadInt64(data, "SourceUserId")
 	errM := misc.ReadString(data, "Error")
 	loginId := misc.ReadInt64(data, "LoginId")

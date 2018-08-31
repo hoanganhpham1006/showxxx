@@ -20,6 +20,9 @@ import (
 const (
 	COMMAND_NEW_VIEWER      = "COMMAND_NEW_VIEWER"
 	COMMAND_STREAM_FINISHED = "COMMAND_STREAM_FINISHED"
+	// if a viewer joined for a duration that longer than this const:
+	// he will be suggested as a relay for later joins
+	GOOD_RELAY_DURATION = 30 * time.Second
 )
 
 var MapUserIdToStream = make(map[int64]*Stream)
@@ -33,14 +36,15 @@ type Report struct {
 }
 
 type Stream struct {
-	BroadcasterId  int64
-	StreamName     string
-	StreamImage    string
-	StartedTime    time.Time
-	FinishedTime   time.Time
-	ViewerIds      map[int64]bool
-	MapUidToReport map[int64]*Report
-	ConversationId int64
+	BroadcasterId           int64
+	StreamName              string
+	StreamImage             string
+	StartedTime             time.Time
+	FinishedTime            time.Time
+	ViewerIds               map[int64]bool
+	MapUidToReport          map[int64]*Report
+	ConversationId          int64
+	MapViewerIdToJoinedTime map[int64]time.Time
 }
 
 func (u *Stream) String() string {
@@ -65,6 +69,20 @@ func (u *Stream) writeMapToAllViewer(err error, data map[string]interface{}) {
 	for uid, _ := range u.ViewerIds {
 		nbackend.WriteMapToUserId(uid, err, data)
 	}
+}
+
+// return turn the lastest viewer who have joined longer than GOOD_RELAY_DURATION,
+// return 0 means we dont have a good relay
+func calcBestRelay(mapViewerIdToJoinedTime map[int64]time.Time) int64 {
+	// TODO
+	//	now := time.Now()
+	//	bestUid := int64(0)
+	//	bestJoinedTime :=
+	//	for uid, joinedTime := range mapViewerIdToJoinedTime {
+	//
+	//	}
+	//	return bestUid
+	return 0
 }
 
 func GetStream(broadcasterId int64) (*Stream, error) {
@@ -98,14 +116,15 @@ func CreateStream(userId int64, streamName string, streamImage string) (
 		return nil, e
 	}
 	stream := &Stream{
-		BroadcasterId:  userId,
-		StreamName:     streamName,
-		StreamImage:    streamImage,
-		StartedTime:    time.Now(),
-		FinishedTime:   zconfig.DefaultFutureTime,
-		ViewerIds:      map[int64]bool{userId: true},
-		MapUidToReport: make(map[int64]*Report),
-		ConversationId: conversationId,
+		BroadcasterId:           userId,
+		StreamName:              streamName,
+		StreamImage:             streamImage,
+		StartedTime:             time.Now(),
+		FinishedTime:            zconfig.DefaultFutureTime,
+		ViewerIds:               map[int64]bool{userId: true},
+		MapUidToReport:          make(map[int64]*Report),
+		ConversationId:          conversationId,
+		MapViewerIdToJoinedTime: make(map[int64]time.Time),
 	}
 	GMutex.Lock()
 	MapUserIdToStream[userId] = stream
@@ -184,6 +203,7 @@ func ViewStream(viewerId int64, broadcasterId int64) (*Stream, error) {
 	//
 	GMutex.Lock()
 	targetStream.ViewerIds[viewerId] = true
+	targetStream.MapViewerIdToJoinedTime[viewerId] = time.Now()
 	targetStream.writeMapToAllViewer(nil, map[string]interface{}{
 		"Command":     COMMAND_NEW_VIEWER,
 		"NewViewerId": viewerId,
@@ -207,6 +227,7 @@ func StopViewingStream(viewerId int64) error {
 	//
 	GMutex.Lock()
 	delete(targetStream.ViewerIds, viewerId)
+	delete(targetStream.MapViewerIdToJoinedTime, viewerId)
 	GMutex.Unlock()
 	viewer.StatusL1 = users.STATUS_ONLINE
 	viewer.StatusL2 = "{}"

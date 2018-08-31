@@ -252,6 +252,7 @@ func (c *Connection) Write(message []byte) {
 		select {
 		case c.ChanWrite <- message:
 		case <-timeout:
+			fmt.Println("Write timeout", time.Now(), string(message))
 		}
 	}(c)
 }
