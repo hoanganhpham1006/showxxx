@@ -44,12 +44,14 @@ type Stream struct {
 	ViewerIds               map[int64]bool
 	MapUidToReport          map[int64]*Report
 	ConversationId          int64
-	MapViewerIdToJoinedTime map[int64]time.Time
+	MapViewerIdToJoinedTime map[int64]time.Time `json:"-"`
+	RelayUserId             int64
 }
 
 func (u *Stream) String() string {
 	GMutex.Lock()
 	defer GMutex.Unlock()
+	u.RelayUserId = calcBestRelayUserId(u.MapViewerIdToJoinedTime)
 	bs, e := json.MarshalIndent(u, "", "    ")
 	if e != nil {
 		return "{}"
@@ -72,17 +74,20 @@ func (u *Stream) writeMapToAllViewer(err error, data map[string]interface{}) {
 }
 
 // return turn the lastest viewer who have joined longer than GOOD_RELAY_DURATION,
-// return 0 means we dont have a good relay
-func calcBestRelay(mapViewerIdToJoinedTime map[int64]time.Time) int64 {
-	// TODO
-	//	now := time.Now()
-	//	bestUid := int64(0)
-	//	bestJoinedTime :=
-	//	for uid, joinedTime := range mapViewerIdToJoinedTime {
-	//
-	//	}
-	//	return bestUid
-	return 0
+// return 0 means we dont have a good relay.
+// need to embracing in locker
+func calcBestRelayUserId(mapViewerIdToJoinedTime map[int64]time.Time) int64 {
+	now := time.Now()
+	bestUid := int64(0)
+	bestJoinedTime := now.Add(-86400 * time.Second)
+	for uid, joinedTime := range mapViewerIdToJoinedTime {
+		if joinedTime.After(bestJoinedTime) &&
+			joinedTime.Before(now.Add(-GOOD_RELAY_DURATION)) {
+			bestUid = uid
+			bestJoinedTime = joinedTime
+		}
+	}
+	return bestUid
 }
 
 func GetStream(broadcasterId int64) (*Stream, error) {
@@ -298,12 +303,14 @@ func StreamAllSummaries(filterReported bool) []map[string]interface{} {
 		if b != nil {
 			temp1 = b.ToMap()
 		}
+		stream.RelayUserId = calcBestRelayUserId(stream.MapViewerIdToJoinedTime)
 		result = append(result, map[string]interface{}{
 			"BroadcasterId":     stream.BroadcasterId,
 			"BroadcasterDetail": temp1,
 			"NViewers":          len(stream.ViewerIds),
 			"StreamName":        stream.StreamName,
 			"StreamImage":       stream.StreamImage,
+			"RelayUserId":       stream.RelayUserId,
 		})
 	}
 	GMutex.Unlock()

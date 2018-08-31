@@ -51,6 +51,7 @@ func Test01(t *testing.T) {
 		t.Error()
 	}
 	// fmt.Println("streams", streams)
+	time.Sleep(3 * time.Second)
 	fmt.Println(MapUserIdToStream[4].ToMap())
 
 	e = FinishStream(2)

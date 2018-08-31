@@ -238,6 +238,7 @@ func (c *Connection) WritePump(doAfterClosingConnection func(*Connection)) {
 
 // send close control message
 func (c *Connection) Close(reason string) {
+	zconfig.TPrint(time.Now(), "Close Connection", c.Ip())
 	timeout := time.After(1 * time.Second)
 	select {
 	case c.ChanClose <- []byte(reason):
