@@ -36,8 +36,8 @@ func MoneyIOCharge(user_id int64, data map[string]interface{}) (
 		if err != nil {
 			return nil, err
 		}
-		urlToPaymentSite := rPaytrust(user_id, BankName, VndValue, chargingId)
-		return map[string]interface{}{"UrlToPaymentSite": urlToPaymentSite}, nil
+		urlToPaymentSite, err := rPaytrust(user_id, BankName, VndValue, chargingId)
+		return map[string]interface{}{"UrlToPaymentSite": urlToPaymentSite}, err
 	default:
 		return nil, errors.New(l.Get(l.M040InvalidChargingType))
 	}
@@ -213,10 +213,11 @@ func IpnListenAndServe() {
 
 // return urlToPaymentSite
 func rPaytrust(
-	user_id int64, BankName string, VndValue float64, chargingId int64) string {
+	user_id int64, BankName string, VndValue float64, chargingId int64) (
+	string, error) {
 	bank_code, isIn := zglobal.MoneyIOPaytrustMapBankNameToBankCode[BankName]
 	if !isIn {
-		return ""
+		return "", errors.New(l.Get(l.M038InvalidBankName))
 	}
 	client := &http.Client{}
 	temp := url.Values{}
@@ -240,15 +241,24 @@ func rPaytrust(
 	// send the http request
 	resp, err := client.Do(req)
 	if err != nil {
-		fmt.Println("ERROR: ", err)
+		return "", errors.New("Can't send request to paytrust88.com")
 	}
 	defer resp.Body.Close()
 	body, err := ioutil.ReadAll(resp.Body)
-	fmt.Println("resp body", string(body))
+	// fmt.Println("resp body", string(body))
+	if err != nil {
+		return "", err
+	}
 	var data map[string]interface{}
 	err = json.Unmarshal(body, &data)
-	//		fmt.Println(utils.PFormat(data))
-	return m.ReadString(data, "redirect_to")
+	if err != nil {
+		return "", err
+	}
+	fmt.Println("data", data)
+	if m.ReadString(data, "error") != "" {
+		return "", errors.New(m.ReadString(data, "error"))
+	}
+	return m.ReadString(data, "redirect_to"), nil
 }
 
 func ipnPaytrustCharge(

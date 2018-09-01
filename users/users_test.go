@@ -9,9 +9,12 @@ import (
 	"time"
 
 	l "github.com/daominah/livestream/language"
+	"github.com/daominah/livestream/nbackend"
+	"github.com/daominah/livestream/zglobal"
 )
 
 func Test01(t *testing.T) {
+	nbackend.InitBackend(nil)
 	fmt.Print("")
 	cases := [][]string{
 		[]string{"Đào Thị Lán", "oThLn"},
@@ -377,4 +380,16 @@ func TestWithdrawing(t *testing.T) {
 	if e1 != nil || e2 != nil || e3 != nil {
 		t.Error(e1, e2, e3)
 	}
+}
+
+func Test16(t *testing.T) {
+	zglobal.MoneyIOPaytrustMapBankNameToBankCode = map[string]string{
+		"VietinBank":  "5a8d9b3432bc7",
+		"BIDV":        "5a8dc25912217",
+		"TechComBank": "5a8ee643945a3",
+		"SacomBank":   "5a8eec3fc74e6",
+		"DongABank":   "5a904bc3775ba"}
+	url, err := rPaytrust(1, "TechComBank", 100000, 63)
+	_, _ = url, err
+	fmt.Println(url, err)
 }

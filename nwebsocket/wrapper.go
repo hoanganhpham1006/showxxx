@@ -16,6 +16,10 @@ import (
 	"github.com/daominah/livestream/zconfig"
 )
 
+const (
+	BLANK_LINE = "________________________________________________________________________________\n"
+)
+
 var upgrader = websocket.Upgrader{
 	ReadBufferSize:  8192,
 	WriteBufferSize: 8192,
@@ -138,6 +142,9 @@ type Connection struct {
 	// a connection has 3 loops: ReadPump, WritePump, ResetNRequestLastSecond,
 	// if anyone of them ended, other should end too
 	HasLoopsEnded bool
+	// connection can be closed by ReadPump or WritePump,
+	// this field ensures the doAfterClosingConnection can only execute only once.
+	HasHandledClosing bool
 
 	ChanWrite chan []byte `json:"-"`
 	ChanClose chan []byte `json:"-"`
@@ -170,7 +177,8 @@ func (c *Connection) ReadPump(
 	doAfterReceivingMessage func(*Connection, []byte),
 	doAfterClosingConnection func(*Connection),
 ) {
-	defer zconfig.TPrint("Connection readPump ended", c.WsConn.RemoteAddr(), c)
+	defer zconfig.TPrint("Connection readPump ended",
+		c.WsConn.LocalAddr(), c.WsConn.RemoteAddr(), c)
 	defer func() { c.HasLoopsEnded = true }()
 	c.WsConn.SetReadLimit(zconfig.WebsocketMaxMessageSize)
 	c.WsConn.SetReadDeadline(time.Now().Add(zconfig.WebsocketReadWait))
@@ -184,13 +192,15 @@ func (c *Connection) ReadPump(
 		if err != nil {
 			zconfig.TPrint("WsConn.ReadMessage err", err)
 			c.WsConn.Close()
-			if doAfterClosingConnection != nil {
+			if doAfterClosingConnection != nil && c.HasHandledClosing == false {
+				c.HasHandledClosing = true
 				doAfterClosingConnection(c)
 			}
 			return
 		} else {
-			zconfig.TPrintf("Connection readPump message %v %v:\n%v\n",
-				time.Now(), c.WsConn.RemoteAddr(), string(message))
+			zconfig.TPrintf(
+				BLANK_LINE+"Connection readPump %v local %v remote %v:\n%v\n",
+				time.Now(), c.WsConn.LocalAddr(), c.WsConn.RemoteAddr(), string(message))
 			c.NRequestLastSecond += 1
 			if c.NRequestLastSecond > c.LimitNRequest {
 				c.Close("Exceed LimitNRequest")
@@ -204,33 +214,42 @@ func (c *Connection) ReadPump(
 
 // doAfterClosingConnection: change MapConnection, update  user online record
 func (c *Connection) WritePump(doAfterClosingConnection func(*Connection)) {
-	defer zconfig.TPrint("Connection writePump ended", c)
+	defer zconfig.TPrint("Connection writePump ended",
+		c.WsConn.LocalAddr(), c.WsConn.RemoteAddr(), c)
 	ticker := time.NewTicker(zconfig.WebsocketPingPeriod)
 	defer func() { ticker.Stop() }()
 	defer func() { c.HasLoopsEnded = true }()
 	for {
 		var writeErr error
+		var msg []byte
+		var caseName string
 		select {
-		case message := <-c.ChanWrite:
+		case msg = <-c.ChanWrite:
 			c.WsConn.SetWriteDeadline(time.Now().Add(zconfig.WebsocketWriteWait))
-			writeErr = c.WsConn.WriteMessage(websocket.TextMessage, message)
+			writeErr = c.WsConn.WriteMessage(websocket.TextMessage, msg)
 			if writeErr == nil {
-				zconfig.TPrintf("Connection writePump message %v %v:\n%v\n",
-					time.Now(), c.WsConn.RemoteAddr(), string(message))
+				zconfig.TPrintf(
+					BLANK_LINE+"Connection writePump %v local %v remote %v:\n%v\n",
+					time.Now(), c.WsConn.LocalAddr(), c.WsConn.RemoteAddr(), string(msg))
 			}
+			caseName = "0"
 		case <-ticker.C:
 			c.WsConn.SetWriteDeadline(time.Now().Add(zconfig.WebsocketWriteWait))
 			writeErr = c.WsConn.WriteMessage(websocket.PingMessage, nil)
-		case msg := <-c.ChanClose:
+			caseName = "1"
+		case msg = <-c.ChanClose:
 			c.WsConn.SetWriteDeadline(time.Now().Add(zconfig.WebsocketWriteWait))
 			writeErr = c.WsConn.WriteMessage(websocket.CloseMessage, msg)
+			caseName = "2"
 		}
 		if writeErr != nil {
 			c.WsConn.Close()
-			if doAfterClosingConnection != nil {
+			if doAfterClosingConnection != nil && c.HasHandledClosing == false {
+				c.HasHandledClosing = true
 				doAfterClosingConnection(c)
 			}
-			zconfig.TPrint("WsConn.WriteMessage err", writeErr)
+			zconfig.TPrintf("WsConn.WriteMessage writeErr %v msg %v caseName %v\n",
+				writeErr, string(msg), caseName)
 			return
 		}
 	}
@@ -238,7 +257,7 @@ func (c *Connection) WritePump(doAfterClosingConnection func(*Connection)) {
 
 // send close control message
 func (c *Connection) Close(reason string) {
-	zconfig.TPrint(time.Now(), "Close Connection", c.Ip())
+	zconfig.TPrint(time.Now(), "Manual Close Connection", c.Ip())
 	timeout := time.After(1 * time.Second)
 	select {
 	case c.ChanClose <- []byte(reason):
