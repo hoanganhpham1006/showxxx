@@ -83,6 +83,41 @@ func GetListVideos(userId int64, limit int, offset int, orderBy string) (
 	return map[string]interface{}{"Rows": result}, nil
 }
 
+func GetVideoInfoById(userId int64, videoId int64) (map[string]interface{}, error) {
+	row := zdatabase.DbPool.QueryRow(fmt.Sprintf(
+		`SELECT id, name, cate_id, image, video, price, description,
+    		created_time, user_id
+		FROM video LEFT JOIN video_buyer ON video.id = video_buyer.video_id
+		WHERE id = $1 AND (user_id IS NULL OR user_id = $2)`),
+		videoId, userId)
+	var id, cate_id int64
+	var name, image, video, description string
+	var price float64
+	var created_time time.Time
+	var user_id sql.NullInt64
+	err := row.Scan(&id, &name, &cate_id, &image, &video, &price,
+		&description, &created_time, &user_id)
+	if err != nil {
+		return nil, err
+	}
+	hasBought := false
+	if user_id.Valid {
+		hasBought = true
+	}
+	result := map[string]interface{}{
+		"Id":          id,
+		"Name":        name,
+		"CategoryId":  cate_id,
+		"Thumbnail":   image,
+		"Video":       video,
+		"Price":       price,
+		"Description": description,
+		"CreatedTime": created_time.Format(time.RFC3339),
+		"HasBought":   hasBought,
+	}
+	return result, nil
+}
+
 func BuyVideo(userId int64, videoId int64) error {
 	user, _ := users.GetUser(userId)
 	if user == nil {

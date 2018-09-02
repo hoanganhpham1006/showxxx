@@ -30,7 +30,18 @@ func Test02(t *testing.T) {
 func Test03(t *testing.T) {
 	nbackend.InitBackend(nil) // for changing money
 	err := BuyVideo(8, 2)
-	if err != nil {
-		t.Error(err)
+	_ = err
+	//	fmt.Println("Test03", err)
+}
+
+func Test04(t *testing.T) {
+	_, e := GetVideoInfoById(8, 2)
+	if e != nil {
+		t.Error(e)
+	}
+	_, e = GetVideoInfoById(-1, -1)
+	//	fmt.Println(e)
+	if e == nil {
+		t.Error()
 	}
 }
