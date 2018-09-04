@@ -497,6 +497,10 @@ func AdnvidGetListVideos(userId int64, limit int64, offset int64, orderBy string
 	map[string]interface{}, error) {
 	return adnvid.GetListVideos(userId, int(limit), int(offset), orderBy)
 }
+func AdnvidGetListVideos2(limit int64, offset int64, orderBy string) (
+	map[string]interface{}, error) {
+	return adnvid.GetListVideos2(int(limit), int(offset), orderBy)
+}
 func AdnvidGetVideoInfoById(userId int64, videoId int64) (
 	map[string]interface{}, error) {
 	return adnvid.GetVideoInfoById(userId, videoId)

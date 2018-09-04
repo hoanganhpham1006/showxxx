@@ -83,6 +83,45 @@ func GetListVideos(userId int64, limit int, offset int, orderBy string) (
 	return map[string]interface{}{"Rows": result}, nil
 }
 
+// dont have fields: "Video", "HasBought"
+func GetListVideos2(limit int, offset int, orderBy string) (
+	map[string]interface{}, error) {
+	if misc.FindStringInSlice(orderBy, []string{
+		"id", "price", "cate_id"}) == -1 {
+		return nil, errors.New("Invalid orderBy")
+	}
+	rows, err := zdatabase.DbPool.Query(fmt.Sprintf(
+		`SELECT id, name, cate_id, image, video, price, description, created_time
+		FROM video 
+		ORDER BY %v DESC LIMIT $1 OFFSET $2`, orderBy),
+		limit, offset)
+	if err != nil {
+		return nil, err
+	}
+	result := []map[string]interface{}{}
+	for rows.Next() {
+		var id, cate_id int64
+		var name, image, video, description string
+		var price float64
+		var created_time time.Time
+		err = rows.Scan(&id, &name, &cate_id, &image, &video, &price,
+			&description, &created_time)
+		if err != nil {
+			return nil, err
+		}
+		result = append(result, map[string]interface{}{
+			"Id":          id,
+			"Name":        name,
+			"CategoryId":  cate_id,
+			"Thumbnail":   image,
+			"Price":       price,
+			"Description": description,
+			"CreatedTime": created_time.Format(time.RFC3339),
+		})
+	}
+	return map[string]interface{}{"Rows": result}, nil
+}
+
 func GetVideoInfoById(userId int64, videoId int64) (map[string]interface{}, error) {
 	row := zdatabase.DbPool.QueryRow(fmt.Sprintf(
 		`SELECT id, name, cate_id, image, video, price, description,

@@ -74,6 +74,12 @@ func doAfterReceivingMessage(connection *nwebsocket.Connection, message []byte) 
 			d, e = UserSearch(
 				m.ReadString(data, "Key"),
 			)
+		case "AdnvidGetListVideos2":
+			d, e = AdnvidGetListVideos2(
+				m.ReadInt64(data, "Limit"),
+				m.ReadInt64(data, "Offset"),
+				m.ReadString(data, "OrderBy"),
+			)
 
 		default:
 			d = map[string]interface{}{"message": string(message)}

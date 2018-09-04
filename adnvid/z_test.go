@@ -25,6 +25,11 @@ func Test02(t *testing.T) {
 	if e != nil || len(rows) == 0 {
 		t.Error(e)
 	}
+	rows, e = GetListVideos2(10, 0, "id")
+	fmt.Println(rows, e)
+	if e != nil || len(rows) == 0 {
+		t.Error(e)
+	}
 }
 
 func Test03(t *testing.T) {
