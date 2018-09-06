@@ -26,7 +26,7 @@ func Test02(t *testing.T) {
 		t.Error(e)
 	}
 	rows, e = GetListVideos2(10, 0, "id")
-	fmt.Println(rows, e)
+	//	fmt.Println(rows, e)
 	if e != nil || len(rows) == 0 {
 		t.Error(e)
 	}
@@ -48,5 +48,24 @@ func Test04(t *testing.T) {
 	//	fmt.Println(e)
 	if e == nil {
 		t.Error()
+	}
+}
+
+func Test05(t *testing.T) {
+	d, e := GetAdById(2)
+	_ = d
+	//	fmt.Println(d)
+	if e != nil {
+		t.Error(e)
+	}
+	_, e = GetVideoInfoById(-1, -1)
+	//	fmt.Println(e)
+	if e == nil {
+		t.Error()
+	}
+	d, e = GetListAds(3, 0, "id")
+	//	fmt.Println(d, e)
+	if e != nil {
+		t.Error(e)
 	}
 }

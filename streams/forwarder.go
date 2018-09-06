@@ -65,11 +65,12 @@ func ForwarderListenAndServer() {
 		viewerId, _ := strconv.ParseInt(viewerIdS, 10, 64)
 		streamName := misc.ReadString(data, "StreamName")
 		streamImage := misc.ReadString(data, "StreamImage")
+		passwd := misc.ReadString(data, "Password")
 		var stream *Stream
 		if isCreatingStream {
-			stream, err = CreateStream(broadcasterId, streamName, streamImage)
+			stream, err = CreateStream(broadcasterId, streamName, streamImage, passwd)
 		} else {
-			stream, err = ViewStream(viewerId, broadcasterId)
+			stream, err = ViewStream(viewerId, broadcasterId, passwd)
 		}
 		if stream != nil {
 			GMutex.Lock()

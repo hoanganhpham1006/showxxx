@@ -16,6 +16,7 @@ const (
 	M025UserSuspended         = "M025UserSuspended"
 	M030InvalidRole           = "M030InvalidRole"
 	M031OperationNotPermitted = "M031OperationNotPermitted"
+	M045InvalidPassword       = "M045InvalidPassword"
 
 	M012DuplicateTeamName           = "M012DuplicateTeamName"
 	M013SetTeamCaptainOutsider      = "M013SetTeamCaptainOutsider"

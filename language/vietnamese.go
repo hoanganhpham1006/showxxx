@@ -13,6 +13,7 @@ func init() {
 		M025UserSuspended:         "Tài khoản của bạn đã bị tạm ngưng hoạt động",
 		M030InvalidRole:           "Sai kiểu người dùng.",
 		M031OperationNotPermitted: "Hành động không được cho phép",
+		M045InvalidPassword:       "M045InvalidPassword",
 
 		M012DuplicateTeamName:           "Tên đội bị trùng",
 		M013SetTeamCaptainOutsider:      "Chỉ có thành viên mới có thể thành đội trưởng",

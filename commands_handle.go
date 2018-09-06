@@ -379,23 +379,23 @@ func TeamHandleJoiningRequest(teamId int64, userId int64, isAccepted bool) (
 	return nil, err
 }
 
-func StreamCreate(userId int64, streamName string, streamImage string) (
-	map[string]interface{}, error) {
-	stream, err := streams.CreateStream(userId, streamName, streamImage)
-	if stream == nil {
-		return nil, err
-	}
-	return stream.ToMap(), nil
-}
-
-func StreamView(viewerId int64, broadcasterId int64) (
-	map[string]interface{}, error) {
-	stream, err := streams.ViewStream(viewerId, broadcasterId)
-	if stream == nil {
-		return nil, err
-	}
-	return stream.ToMap(), nil
-}
+//func StreamCreate(userId int64, streamName string, streamImage string) (
+//	map[string]interface{}, error) {
+//	stream, err := streams.CreateStream(userId, streamName, streamImage)
+//	if stream == nil {
+//		return nil, err
+//	}
+//	return stream.ToMap(), nil
+//}
+//
+//func StreamView(viewerId int64, broadcasterId int64) (
+//	map[string]interface{}, error) {
+//	stream, err := streams.ViewStream(viewerId, broadcasterId)
+//	if stream == nil {
+//		return nil, err
+//	}
+//	return stream.ToMap(), nil
+//}
 func StreamAllSummaries() (
 	map[string]interface{}, error) {
 	rows := streams.StreamAllSummaries(false)
@@ -508,4 +508,12 @@ func AdnvidGetVideoInfoById(userId int64, videoId int64) (
 func AdnvidBuyVideo(userId int64, videoId int64) (
 	map[string]interface{}, error) {
 	return nil, adnvid.BuyVideo(userId, videoId)
+}
+func AdnvidGetListAds(limit int64, offset int64, orderBy string) (
+	map[string]interface{}, error) {
+	return adnvid.GetListAds(int(limit), int(offset), orderBy)
+}
+func AdnvidGetAdById(adId int64) (
+	map[string]interface{}, error) {
+	return adnvid.GetAdById(adId)
 }

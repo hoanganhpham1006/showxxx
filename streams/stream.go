@@ -46,6 +46,7 @@ type Stream struct {
 	ConversationId          int64
 	MapViewerIdToJoinedTime map[int64]time.Time `json:"-"`
 	RelayUserId             int64
+	Password                string `json:"-"`
 }
 
 func (u *Stream) String() string {
@@ -100,7 +101,7 @@ func GetStream(broadcasterId int64) (*Stream, error) {
 	return stream, nil
 }
 
-func CreateStream(userId int64, streamName string, streamImage string) (
+func CreateStream(userId int64, streamName string, streamImage string, passwd string) (
 	*Stream, error) {
 	user, e := users.GetUser(userId)
 	if user == nil {
@@ -130,6 +131,7 @@ func CreateStream(userId int64, streamName string, streamImage string) (
 		MapUidToReport:          make(map[int64]*Report),
 		ConversationId:          conversationId,
 		MapViewerIdToJoinedTime: make(map[int64]time.Time),
+		Password:                passwd,
 	}
 	GMutex.Lock()
 	MapUserIdToStream[userId] = stream
@@ -178,7 +180,7 @@ func FinishStream(broadcasterId int64) error {
 	return nil
 }
 
-func ViewStream(viewerId int64, broadcasterId int64) (*Stream, error) {
+func ViewStream(viewerId int64, broadcasterId int64, passwd string) (*Stream, error) {
 	viewer, e := users.GetUser(viewerId)
 	if viewer == nil {
 		return nil, e
@@ -206,6 +208,10 @@ func ViewStream(viewerId int64, broadcasterId int64) (*Stream, error) {
 		return viewingStream, fmt.Errorf("%v: %v", l.Get(l.M029StreamConcurrentView))
 	}
 	//
+	if passwd != targetStream.Password {
+		return nil, errors.New(l.Get(l.M029StreamConcurrentView))
+	}
+	//
 	GMutex.Lock()
 	targetStream.ViewerIds[viewerId] = true
 	targetStream.MapViewerIdToJoinedTime[viewerId] = time.Now()
@@ -220,6 +226,7 @@ func ViewStream(viewerId int64, broadcasterId int64) (*Stream, error) {
 	return targetStream, nil
 }
 
+// StopViewingStream is FinishStream if viewerId is BroadcasterId
 func StopViewingStream(viewerId int64) error {
 	viewer, e := users.GetUser(viewerId)
 	if viewer == nil {

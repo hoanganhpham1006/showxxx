@@ -80,6 +80,12 @@ func doAfterReceivingMessage(connection *nwebsocket.Connection, message []byte) 
 				m.ReadInt64(data, "Offset"),
 				m.ReadString(data, "OrderBy"),
 			)
+		case "AdnvidGetListAds":
+			d, e = AdnvidGetListAds(
+				m.ReadInt64(data, "Limit"),
+				m.ReadInt64(data, "Offset"),
+				m.ReadString(data, "OrderBy"),
+			)
 
 		default:
 			d = map[string]interface{}{"message": string(message)}
@@ -335,6 +341,16 @@ func doAfterReceivingMessage(connection *nwebsocket.Connection, message []byte) 
 			d, e = AdnvidBuyVideo(
 				userId,
 				m.ReadInt64(data, "VideoId"),
+			)
+		case "AdnvidGetListAds":
+			d, e = AdnvidGetListAds(
+				m.ReadInt64(data, "Limit"),
+				m.ReadInt64(data, "Offset"),
+				m.ReadString(data, "OrderBy"),
+			)
+		case "AdnvidGetAdById":
+			d, e = AdnvidGetAdById(
+				m.ReadInt64(data, "AdId"),
 			)
 
 		default:

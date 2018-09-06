@@ -454,3 +454,14 @@ CREATE TABLE video_buyer (
     bought_time TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
     CONSTRAINT video_buyer_pkey PRIMARY KEY (video_id, user_id)
 );
+
+CREATE TABLE ads
+(
+  id BIGSERIAL, CONSTRAINT ads_pkey PRIMARY KEY (id),
+  name TEXT DEFAULT '',
+  url TEXT DEFAULT '',
+  image TEXT DEFAULT '',
+  "type" TEXT DEFAULT '',
+  description TEXT DEFAULT '',
+  created_time TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);

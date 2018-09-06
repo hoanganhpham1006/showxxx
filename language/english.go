@@ -13,6 +13,7 @@ func init() {
 		M025UserSuspended:         "Your account has been suspended",
 		M030InvalidRole:           "Invalid user's role",
 		M031OperationNotPermitted: "Operation not permitted",
+		M045InvalidPassword:       "M045InvalidPassword",
 
 		M012DuplicateTeamName:           "Duplicate team name",
 		M013SetTeamCaptainOutsider:      "Can only set team's member as captain",
