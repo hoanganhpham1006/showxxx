@@ -3,7 +3,7 @@ package main
 import (
 	//	"encoding/json"
 	"errors"
-	//	"fmt"
+	"fmt"
 	"time"
 
 	"github.com/daominah/livestream/conversations"
@@ -493,9 +493,16 @@ func MGameCarGetCurrentMatch() (map[string]interface{}, error) {
 func AdnvidGetListVideoCategories() (map[string]interface{}, error) {
 	return adnvid.GetListVideoCategories()
 }
-func AdnvidGetListVideos(userId int64, limit int64, offset int64, orderBy string) (
+func AdnvidGetListVideos(userId int64, limit int64, offset int64, orderBy string,
+	filterCategoryId int64) (
 	map[string]interface{}, error) {
-	return adnvid.GetListVideos(userId, int(limit), int(offset), orderBy)
+	var filter string
+	if filterCategoryId == 0 {
+		filter = ""
+	} else {
+		filter = fmt.Sprintf(" AND cate_id = %v ", filterCategoryId)
+	}
+	return adnvid.GetListVideos(userId, int(limit), int(offset), orderBy, filter)
 }
 func AdnvidGetListVideos2(limit int64, offset int64, orderBy string) (
 	map[string]interface{}, error) {

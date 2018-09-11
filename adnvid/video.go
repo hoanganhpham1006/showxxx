@@ -36,7 +36,7 @@ func GetListVideoCategories() (
 	return map[string]interface{}{"Rows": result}, nil
 }
 
-func GetListVideos(userId int64, limit int, offset int, orderBy string) (
+func GetListVideos(userId int64, limit int, offset int, orderBy string, filter string) (
 	map[string]interface{}, error) {
 	if misc.FindStringInSlice(orderBy, []string{
 		"id", "price", "cate_id"}) == -1 {
@@ -46,8 +46,8 @@ func GetListVideos(userId int64, limit int, offset int, orderBy string) (
 		`SELECT id, name, cate_id, image, video, price, description,
     		created_time, user_id
 		FROM video LEFT JOIN video_buyer ON video.id = video_buyer.video_id
-		WHERE user_id IS NULL OR user_id = $1
-		ORDER BY %v DESC LIMIT $2 OFFSET $3`, orderBy),
+		WHERE (user_id IS NULL OR user_id = $1) %v
+		ORDER BY %v DESC LIMIT $2 OFFSET $3`, filter, orderBy),
 		userId, limit, offset)
 	if err != nil {
 		return nil, err

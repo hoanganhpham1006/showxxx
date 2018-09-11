@@ -331,6 +331,7 @@ func doAfterReceivingMessage(connection *nwebsocket.Connection, message []byte) 
 				m.ReadInt64(data, "Limit"),
 				m.ReadInt64(data, "Offset"),
 				m.ReadString(data, "OrderBy"),
+				m.ReadInt64(data, "FilterCategoryId"),
 			)
 		case "AdnvidGetVideoInfoById":
 			d, e = AdnvidGetVideoInfoById(

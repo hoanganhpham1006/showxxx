@@ -20,8 +20,9 @@ func Test01(t *testing.T) {
 func Test02(t *testing.T) {
 	_ = fmt.Println
 	//fmt.Println("hihi")
-	rows, e := GetListVideos(1, 10, 0, "id")
-	//	fmt.Println(rows, e)
+	rows, e := GetListVideos(1, 10, 0, "id",
+		fmt.Sprintf(" AND cate_id = %v ", 1))
+	fmt.Println(rows, e)
 	if e != nil || len(rows) == 0 {
 		t.Error(e)
 	}
