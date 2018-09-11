@@ -502,7 +502,11 @@ func AdnvidGetListVideos(userId int64, limit int64, offset int64, orderBy string
 	} else {
 		filter = fmt.Sprintf(" AND cate_id = %v ", filterCategoryId)
 	}
-	return adnvid.GetListVideos(userId, int(limit), int(offset), orderBy, filter)
+	data, err := adnvid.GetListVideos(userId, int(limit), int(offset), orderBy, filter)
+	if filterCategoryId != 0 {
+		data["FilterCategoryId"] = filterCategoryId
+	}
+	return data, err
 }
 func AdnvidGetListVideos2(limit int64, offset int64, orderBy string) (
 	map[string]interface{}, error) {
