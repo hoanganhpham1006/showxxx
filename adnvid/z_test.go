@@ -3,7 +3,6 @@ package adnvid
 import (
 	"fmt"
 	"testing"
-
 	"github.com/daominah/livestream/nbackend"
 )
 
@@ -66,6 +65,15 @@ func Test05(t *testing.T) {
 	}
 	d, e = GetListAds(3, 0, "id")
 	//	fmt.Println(d, e)
+	if e != nil {
+		t.Error(e)
+	}
+}
+
+func Test06(t *testing.T) {
+	nbackend.InitBackend(nil)
+	_, e := AdnvidBuyCategoryDay(5, 1)
+
 	if e != nil {
 		t.Error(e)
 	}

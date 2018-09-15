@@ -27,6 +27,8 @@ var MoneyIORateBankCharging float64
 var MoneyIOPaytrustMapBankNameToBankCode map[string]string
 var MoneyIOPaytrustKey string
 
+var CategoryPrice float64
+
 func init() {
 	// default values
 	ExVar1Default := map[string]int64{"a": 1, "b": 2}
@@ -51,7 +53,8 @@ func init() {
 		"SacomBank":   "5a8eec3fc74e6",
 		"DongABank":   "5a904bc3775ba"}
 	MoneyIOPaytrustKeyDefault := "Basic TjZsWTZxNjAxQll6WkdnSzhYMERtVU1DaUFjSEVDVFE6"
-
+	
+	CategoryPriceDefault := float64(1000)
 	// loop update values
 	go func() {
 		time.Sleep(5 * time.Second) // waiting for init record.dbPool
@@ -173,7 +176,21 @@ func init() {
 			}
 
 			//
+
+			key = "CategoryPrice"
+			value = zdatabase.LoadGlobalVar(key)
+			CategoryPrice, err = strconv.ParseFloat(value, 64)
+			if err != nil {
+				fmt.Println("zglobal err", key, err)
+				CategoryPrice = CategoryPriceDefault
+				temp := fmt.Sprintf("%v", CategoryPriceDefault)
+				zdatabase.SaveGlobalVar(key, temp)
+			}
+
+			//
 			time.Sleep(5 * time.Second)
+
+
 		}
 	}()
 }

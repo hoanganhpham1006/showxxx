@@ -437,7 +437,7 @@ CREATE TABLE video (
     description TEXT DEFAULT '',
     created_time TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
-
+ALTER TABLE video ADD is_hot BOOLEAN DEFAULT FALSE;
 
 
 CREATE TABLE video_categories (
@@ -453,6 +453,13 @@ CREATE TABLE video_buyer (
     user_id BIGINT DEFAULT 0 REFERENCES "user" (id),
     bought_time TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
     CONSTRAINT video_buyer_pkey PRIMARY KEY (video_id, user_id)
+);
+
+CREATE TABLE video_categories_buyer (
+    category_id BIGINT DEFAULT 0 REFERENCES video_categories (id),
+    user_id BIGINT DEFAULT 0 REFERENCES "user" (id),
+    bought_date TEXT DEFAULT '',
+    CONSTRAINT video_categories_buyer_pkey PRIMARY KEY (category_id, user_id, bought_date)
 );
 
 CREATE TABLE ads
