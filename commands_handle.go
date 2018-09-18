@@ -528,3 +528,8 @@ func AdnvidGetAdById(adId int64) (
 	map[string]interface{}, error) {
 	return adnvid.GetAdById(adId)
 }
+
+func AdnvidBuyCategoryDay(userId int64, categoryId int64) (
+	map[string]interface{}, error) {
+	return adnvid.AdnvidBuyCategoryDay(userId, categoryId)
+}

@@ -1,10 +1,12 @@
 package adnvid
 
 import (
+	"github.com/daominah/livestream/zglobal"
 	"database/sql"
 	"errors"
 	"fmt"
 	"time"
+	"strings"
 
 	l "github.com/daominah/livestream/language"
 	"github.com/daominah/livestream/misc"
@@ -124,25 +126,37 @@ func GetListVideos2(limit int, offset int, orderBy string) (
 
 func GetVideoInfoById(userId int64, videoId int64) (map[string]interface{}, error) {
 	row := zdatabase.DbPool.QueryRow(fmt.Sprintf(
-		`SELECT id, name, cate_id, image, video, price, description,
-    		created_time, user_id
-		FROM video LEFT JOIN video_buyer ON video.id = video_buyer.video_id
-		WHERE id = $1 AND (user_id IS NULL OR user_id = $2)`),
-		videoId, userId)
+		`SELECT v.id, v.name, v.cate_id, v.image, v.video, v.price, v.description, 
+		v.is_hot, v.created_time, vb.user_id, vcb.user_id, vcb.bought_date
+		FROM video v LEFT JOIN video_buyer vb ON v.id = vb.video_id
+		LEFT JOIN video_categories_buyer vcb ON v.cate_id = vcb.category_id
+		WHERE v.id = $1 AND ((vb.user_id IS NULL AND vcb.user_id IS NULL) OR vb.user_id = $2 OR vcb.user_id = $3)`),
+		videoId, userId, userId)
 	var id, cate_id int64
-	var name, image, video, description string
+	var name, image, video, description, bought_category_date string
+	var isHot bool
 	var price float64
 	var created_time time.Time
-	var user_id sql.NullInt64
+	var user_id_by_buy_video, user_id_by_buy_category sql.NullInt64
 	err := row.Scan(&id, &name, &cate_id, &image, &video, &price,
-		&description, &created_time, &user_id)
+		&description, &isHot, &created_time, &user_id_by_buy_video, &user_id_by_buy_category,
+		&bought_category_date)
 	if err != nil {
 		return nil, err
 	}
-	hasBought := false
-	if user_id.Valid {
-		hasBought = true
+
+	hasBoughtVideo := false
+	if user_id_by_buy_video.Valid {
+		hasBoughtVideo = true
 	}
+
+	date_now := time.Now().Format(time.RFC3339)[0:10]
+
+	hasBoughtCategory := false
+	if (user_id_by_buy_category.Valid) && (strings.Compare(date_now, bought_category_date) == 0) {
+		hasBoughtCategory = true
+	}
+
 	result := map[string]interface{}{
 		"Id":          id,
 		"Name":        name,
@@ -152,7 +166,8 @@ func GetVideoInfoById(userId int64, videoId int64) (map[string]interface{}, erro
 		"Price":       price,
 		"Description": description,
 		"CreatedTime": created_time.Format(time.RFC3339),
-		"HasBought":   hasBought,
+		"HasBought":   hasBoughtVideo,
+		"HasBoughtCategory": hasBoughtCategory,
 	}
 	return result, nil
 }
@@ -191,4 +206,29 @@ func BuyVideo(userId int64, videoId int64) error {
 		return err
 	}
 	return nil
+}
+
+//AdnvidBuyCategoryDay is 
+func AdnvidBuyCategoryDay(userId int64, categoryId int64) (map[string]interface {}, error) {
+	now := time.Now().Format(time.RFC3339)[0:10]
+	var boughtDate string
+	
+	row := zdatabase.DbPool.QueryRow(
+		`SELECT bought_date FROM video_categories_buyer WHERE user_id=$1 AND category_id=$2`, userId, categoryId)
+	err := row.Scan(&boughtDate)
+	if (err == nil) && (strings.Compare(now, boughtDate) == 0) {
+		return nil, errors.New("Ban da mua the loai nay trong hom nay")
+	}
+
+	_, err = users.ChangeUserMoney(userId, users.MT_CASH, -zglobal.CategoryPrice, users.REASON_BUY_VIDEO, true)
+	if err != nil {
+		return nil, err
+	}
+	
+	_, err = zdatabase.DbPool.Exec(
+		"INSERT INTO video_categories_buyer (category_id, user_id, bought_date) VALUES ($1, $2, $3)", categoryId, userId, now)
+	if err != nil {
+		return nil, err
+	}
+	return nil, nil
 }

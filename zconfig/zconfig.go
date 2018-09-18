@@ -11,8 +11,8 @@ const (
 	PostgresPassword     = "123qwe"
 	PostgresDatabaseName = "live_stream"
 	PostgresAddress      = "127.0.0.1:5432"
-	//	PostgresAddress        = "127.0.0.1:12354"
-	PostgresInitTablesFile = "/home/tungdt/go/src/github.com/daominah/livestream/zdatabase/init.sql"
+	// PostgresAddress        = "127.0.0.1:12354"
+	PostgresInitTablesFile = "/Users/phamhoanganh/go/src/github.com/daominah/livestream/zdatabase/init.sql"
 
 	BackendIp   = "127.0.0.1"
 	BackendPort = ":20004"
@@ -29,7 +29,7 @@ const (
 	StaticUploadPort   = ":20891"
 	StaticUploadPath   = "/hohohaha"
 	StaticDownloadPort = "20892" // this port dont have ":" before the number
-	StaticFolder       = "/home/tungdt/go/src/github.com/daominah/livestream_static"
+	StaticFolder       = "/Users/phamhoanganh/go/src/github.com/daominah/livestream_static"
 
 	//
 	// you rarely need to config below vars

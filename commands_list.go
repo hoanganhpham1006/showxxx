@@ -353,6 +353,11 @@ func doAfterReceivingMessage(connection *nwebsocket.Connection, message []byte) 
 			d, e = AdnvidGetAdById(
 				m.ReadInt64(data, "AdId"),
 			)
+		case "AdnvidBuyCategoryDay":
+			d, e = AdnvidBuyCategoryDay(
+				userId,
+				m.ReadInt64(data, "CategoryId"),
+			)
 
 		default:
 			d = map[string]interface{}{"message": string(message)}
