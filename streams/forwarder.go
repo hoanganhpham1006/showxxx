@@ -36,6 +36,7 @@ func ForwarderListenAndServer() {
 
 	server.On(gosocketio.OnConnection, func(c *gosocketio.Channel) {
 		fmt.Println("connection", c.Ip())
+		c.Ack("guessid", misc.HashStringToInt64(c.Id()), 5*time.Second)
 	})
 	server.On(gosocketio.OnDisconnection, func(c *gosocketio.Channel) {
 		fmt.Println("disconnection", c.Ip())

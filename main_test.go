@@ -22,9 +22,7 @@ func Test02(t *testing.T) {
 	//	serverAddr := fmt.Sprintf("ws://localhost%v/ws", zconfig.ProxyPort)
 	//		serverAddr := fmt.Sprintf("ws://43.239.221.117%v/ws", zconfig.ProxyPort)
 	serverAddr := "ws://tung:2053/ws"
-=======
-	serverAddr := "ws://localhost:20001/ws"
->>>>>>> hoanganhpham1006-add_api_buy_categories_in_day
+	//	serverAddr := "ws://localhost:20001/ws"
 	wsConn, _, e := websocket.DefaultDialer.Dial(serverAddr, nil)
 	if e != nil {
 		t.Error(e)
@@ -55,7 +53,7 @@ func Test02(t *testing.T) {
 			"password": "123qwe",
 		},
 	})
-	//	time.Sleep(500 * time.Millisecond)
+	time.Sleep(500 * time.Millisecond)
 	//	i := 0
 	//	for {
 	//		time.Sleep(1000 * time.Millisecond)
@@ -105,9 +103,9 @@ func Test02(t *testing.T) {
 	//		"method": "TangkasquChooseBaseMoney",
 	//		"data":   map[string]interface{}{"BaseMoney": 20000},
 	//	})
-	//	c.WriteMap(nil, map[string]interface{}{
-	//		"method": "TangkasquCreateMatch",
-	//	})
+	c.WriteMap(nil, map[string]interface{}{
+		"method": "DragontigerMatchesHistory",
+	})
 	//	for i := 0; i < 10; i++ {
 	//		c.WriteMap(nil, map[string]interface{}{
 	//			"method": "TangkasquSendMove",

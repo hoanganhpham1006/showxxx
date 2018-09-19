@@ -17,6 +17,7 @@ import (
 
 	l "github.com/daominah/livestream/language"
 	m "github.com/daominah/livestream/misc"
+	"github.com/daominah/livestream/rank"
 	"github.com/daominah/livestream/zconfig"
 	"github.com/daominah/livestream/zdatabase"
 	"github.com/daominah/livestream/zglobal"
@@ -89,6 +90,14 @@ func chargingChangeInAppMoney(
 		user_id, MT_CASH, in_app_value, REASON_CHARGE, false)
 	if err != nil {
 		return err
+	}
+	for _, rankId := range []int64{
+		rank.RANK_PURCHASED_CASH_DAY,
+		rank.RANK_PURCHASED_CASH_WEEK,
+		rank.RANK_PURCHASED_CASH_MONTH,
+		rank.RANK_PURCHASED_CASH_ALL,
+	} {
+		rank.ChangeKey(rankId, user_id, in_app_value)
 	}
 	_, err = zdatabase.DbPool.Exec(
 		`UPDATE finance_charge

@@ -136,3 +136,9 @@ func TestNormalDistribution(t *testing.T) {
 	mean, deviation := CalcMeanAndDeviation(a)
 	fmt.Println("mean, deviation", mean, deviation)
 }
+
+func TestHash(t *testing.T) {
+	fmt.Println(HashStringToInt64("Tung"))
+	fmt.Println(HashStringToInt64("Tung1"))
+	fmt.Println(HashStringToInt64("Hello"))
+}

@@ -8,6 +8,7 @@ import (
 	"errors"
 	"fmt"
 	"io/ioutil"
+	"math"
 	"net/http"
 	"strconv"
 	"strings"
@@ -268,9 +269,15 @@ func LoadUser(id int64) (*User, error) {
 	row = zdatabase.DbPool.QueryRow(
 		`SELECT team_id FROM team_member WHERE user_id = $1`, id)
 	row.Scan(&user.TeamId)
+
 	// calculated field
 	user.Level = int(user.MapMoney[MT_ONLINE_DURATION])
-	user.LevelVip = 15
+	key, _, _ := rank.LoadKeyAndPosition(rank.RANK_PURCHASED_CASH_MONTH, id)
+	// 10000: lv1, 40000 lv2, .. 2250000 lv15
+	user.LevelVip = int(math.Floor(math.Sqrt(key / 10000)))
+	if user.LevelVip > 15 {
+		user.LevelVip = 15
+	}
 
 	user.NFollowers = len(LoadFollowers(id))
 	user.NFollowing = len(LoadFollowing(id))

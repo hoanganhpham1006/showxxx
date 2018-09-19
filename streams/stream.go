@@ -152,7 +152,8 @@ func FinishStream(broadcasterId int64) error {
 		"BroadcasterId": stream.BroadcasterId,
 	})
 	stream.FinishedTime = time.Now()
-	// TODO: users.MT_BROADCAST_DURATION
+	users.ChangeUserMoney(broadcasterId, users.MT_BROADCAST_DURATION,
+		stream.FinishedTime.Sub(stream.StartedTime).Seconds(), "", false)
 	for uid, _ := range stream.ViewerIds {
 		user, _ := users.GetUser(uid)
 		if user != nil {
@@ -181,10 +182,8 @@ func FinishStream(broadcasterId int64) error {
 }
 
 func ViewStream(viewerId int64, broadcasterId int64, passwd string) (*Stream, error) {
-	viewer, e := users.GetUser(viewerId)
-	if viewer == nil {
-		return nil, e
-	}
+	// viewer can be nil if viewerId is invalid
+	viewer, _ := users.GetUser(viewerId)
 	GMutex.Lock()
 	targetStream := MapUserIdToStream[broadcasterId]
 	GMutex.Unlock()
@@ -220,9 +219,11 @@ func ViewStream(viewerId int64, broadcasterId int64, passwd string) (*Stream, er
 		"NewViewerId": viewerId,
 	})
 	GMutex.Unlock()
-	viewer.StatusL1 = users.STATUS_WATCHING
-	viewer.StatusL2 = fmt.Sprintf(`{"BroadcasterId": %v}`, broadcasterId)
-	conversations.AddMember(targetStream.ConversationId, viewerId, false)
+	if viewer != nil { // logged in viewer
+		viewer.StatusL1 = users.STATUS_WATCHING
+		viewer.StatusL2 = fmt.Sprintf(`{"BroadcasterId": %v}`, broadcasterId)
+		conversations.AddMember(targetStream.ConversationId, viewerId, false)
+	}
 	return targetStream, nil
 }
 
