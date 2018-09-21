@@ -128,7 +128,9 @@ func (c *Conversation) ToShortMap(userId int64) map[string]interface{} {
 		hasSeen := false
 		lastMsg.Mutex.Lock()
 		recipient := lastMsg.Recipients[userId]
-		hasSeen = recipient.HasSeen
+		if recipient != nil {
+			hasSeen = recipient.HasSeen
+		}
 		lastMsg.Mutex.Unlock()
 		result := map[string]interface{}{
 			"Id":             c.Id,

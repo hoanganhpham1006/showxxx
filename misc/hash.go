@@ -12,5 +12,8 @@ func HashStringToInt64(s string) int64 {
 	if r < 0 {
 		r = -r
 	}
+	if r < 1000000000 {
+		r += 1000000000
+	}
 	return r
 }
