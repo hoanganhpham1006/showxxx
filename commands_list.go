@@ -86,6 +86,8 @@ func doAfterReceivingMessage(connection *nwebsocket.Connection, message []byte) 
 				m.ReadInt64(data, "Offset"),
 				m.ReadString(data, "OrderBy"),
 			)
+		case "ConversationGifts":
+			d, e = ConversationGifts()
 
 		default:
 			d = map[string]interface{}{"message": string(message)}

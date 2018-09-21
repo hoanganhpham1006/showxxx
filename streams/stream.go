@@ -182,7 +182,7 @@ func FinishStream(broadcasterId int64) error {
 }
 
 func ViewStream(viewerId int64, broadcasterId int64, passwd string) (*Stream, error) {
-	// viewer can be nil if viewerId is invalid
+	// viewer can be nil if viewerId is viewer is guess
 	viewer, _ := users.GetUser(viewerId)
 	GMutex.Lock()
 	targetStream := MapUserIdToStream[broadcasterId]
@@ -229,10 +229,8 @@ func ViewStream(viewerId int64, broadcasterId int64, passwd string) (*Stream, er
 
 // StopViewingStream is FinishStream if viewerId is BroadcasterId
 func StopViewingStream(viewerId int64) error {
-	viewer, e := users.GetUser(viewerId)
-	if viewer == nil {
-		return e
-	}
+	// viewer can be nil if viewerId is viewer is guess
+	viewer, _ := users.GetUser(viewerId)
 	_, targetStream := GetViewingStream(viewerId)
 	if targetStream == nil {
 		return errors.New(l.Get(l.M028StreamNotBroadcasting))
@@ -242,9 +240,11 @@ func StopViewingStream(viewerId int64) error {
 	delete(targetStream.ViewerIds, viewerId)
 	delete(targetStream.MapViewerIdToJoinedTime, viewerId)
 	GMutex.Unlock()
-	viewer.StatusL1 = users.STATUS_ONLINE
-	viewer.StatusL2 = "{}"
-	conversations.RemoveMember(targetStream.ConversationId, viewerId)
+	if viewer != nil {
+		viewer.StatusL1 = users.STATUS_ONLINE
+		viewer.StatusL2 = "{}"
+		conversations.RemoveMember(targetStream.ConversationId, viewerId)
+	}
 	if viewerId == targetStream.BroadcasterId {
 		FinishStream(targetStream.BroadcasterId)
 	}
