@@ -1,2 +1,6 @@
 livestream
 .project
+nohup.out
+nreverseproxy/nohup.out
+static/nginx_init/nginx_init
+static/nohup.out
