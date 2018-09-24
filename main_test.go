@@ -23,7 +23,7 @@ func Test02(t *testing.T) {
 	//	serverAddr := fmt.Sprintf("ws://43.239.221.117%v/ws", zconfig.ProxyPort)
 	//	serverAddr := fmt.Sprintf("ws://43.239.221.117%v/ws", zconfig.BackendPort)
 	//	serverAddr := "ws://149.28.154.5:2052/ws"
-	serverAddr := "wss://tung:20001/ws"
+	serverAddr := "wss://43.239.221.117:20001/ws"
 	wsConn, _, e := websocket.DefaultDialer.Dial(serverAddr, nil)
 	if e != nil {
 		t.Error(e)
