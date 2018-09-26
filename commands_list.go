@@ -67,6 +67,14 @@ func doAfterReceivingMessage(connection *nwebsocket.Connection, message []byte) 
 			)
 		case "StreamAllSummaries":
 			d, e = StreamAllSummaries()
+
+		case "StreamAllStreamer":
+			d, e = StreamAllStreamer(
+				int(m.ReadInt64(data, "StartIndex")),
+				int(m.ReadInt64(data, "EndIndex")),
+				int(m.ReadInt64(data, "OrderType")), //SORT BY STATUS STREAMING = int64(1)
+			)
+
 		case "UserDetail":
 			d, e = UserDetail(
 				m.ReadInt64(data, "UserId"))
@@ -287,6 +295,12 @@ func doAfterReceivingMessage(connection *nwebsocket.Connection, message []byte) 
 			//			_ = 1
 		case "StreamAllSummaries":
 			d, e = StreamAllSummaries()
+		case "StreamAllStreamer":
+			d, e = StreamAllStreamer(
+				int(m.ReadInt64(data, "StartIndex")),
+				int(m.ReadInt64(data, "EndIndex")),
+				int(m.ReadInt64(data, "OrderType")), //SORT BY STATUS STREAMING = int64(1)
+			)
 		case "StreamGetMyViewing":
 			d, e = StreamGetMyViewing(userId)
 		case "StreamReport":

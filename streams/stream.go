@@ -27,6 +27,12 @@ const (
 
 var MapUserIdToStream = make(map[int64]*Stream)
 
+// 1 array for cache data, 1 array for read data
+var ArrayRankIdToLeaderBoard1 = make([]int64, 0)
+var ArrayRankIdToLeaderBoard2= make([]int64, 0)
+
+var ArrayRankIdController int64 = 1 // =1 thi dung array1 =2 thi dung array 2
+
 // for read/write MapUserIdToStream, stream.ViewerIds, stream.MapUidToReport
 var GMutex sync.Mutex
 
@@ -323,4 +329,192 @@ func StreamAllSummaries(filterReported bool) []map[string]interface{} {
 	}
 	GMutex.Unlock()
 	return result
+}
+
+func StreamAllStreamer(startIndex int, endIndex int, orderType int) []map[string]interface{} {
+	switch orderType {
+	case 1: //Order by Status Streaming
+		GMutex.Lock()
+		result := make([]map[string]interface{}, 0)
+		temp := make([]*Stream, 0)
+		for _, stream := range MapUserIdToStream {
+			temp = append(temp, stream)
+		}
+		GMutex.Unlock()
+		
+		sort.Sort(StreamNViewersOrder(temp))
+		
+		if len(temp) > endIndex {
+			for i:=startIndex; i<endIndex; i++ {
+				var temp1 map[string]interface{}
+				b, _ := users.GetUser(temp[i].BroadcasterId)
+				if b!= nil {
+					temp1 = b.ToMap()
+				}
+				temp[i].RelayUserId = calcBestRelayUserId(temp[i].MapViewerIdToJoinedTime)
+				result = append(result, map[string]interface{}{
+					"BroadcasterId":     temp[i].BroadcasterId,
+					"BroadcasterDetail": temp1,
+					"NViewers":          len(temp[i].ViewerIds),
+					"StreamName":        temp[i].StreamName,
+					"StreamImage":       temp[i].StreamImage,
+					"RelayUserId":       temp[i].RelayUserId,
+					"IsStreaming":			 true,
+				})
+			}
+
+		} else {
+			if len(temp) <= startIndex {
+				new_startIndex := startIndex - len(temp)
+				totalNumber := endIndex-startIndex
+				pointer := &ArrayRankIdToLeaderBoard1
+				if ArrayRankIdController == 2 {
+					pointer = &ArrayRankIdToLeaderBoard2
+				}
+				GMutex.Lock()
+				count := 0
+				for _, userId := range *pointer {
+					var temp1 map[string]interface{}
+					if _, ok := MapUserIdToStream[userId]; !ok {
+						
+						if count == new_startIndex {
+							b, _ := users.GetUser(userId)
+							if b != nil {
+								temp1 =  b.ToMap()
+							} else {
+								continue
+							}
+							result = append(result, map[string]interface{}{
+								"BroadcasterId":     userId,
+								"BroadcasterDetail": temp1,
+								"NViewers":          0,
+								"StreamName":        b.Username,
+								"StreamImage":       b.ProfileImage,
+								"RelayUserId":       0,
+								"IsStreaming":			 false,
+							})
+
+							totalNumber--
+						}
+
+						count++
+
+						if totalNumber == 0 {
+							break
+						}
+					}
+				}
+				GMutex.Unlock()
+			} else {
+				for i:=startIndex; i<len(temp); i++ {
+					var temp1 map[string]interface{}
+					b, _ := users.GetUser(temp[i].BroadcasterId)
+					if b!= nil {
+						temp1 = b.ToMap()
+					}
+					temp[i].RelayUserId = calcBestRelayUserId(temp[i].MapViewerIdToJoinedTime)
+					result = append(result, map[string]interface{}{
+						"BroadcasterId":     temp[i].BroadcasterId,
+						"BroadcasterDetail": temp1,
+						"NViewers":          len(temp[i].ViewerIds),
+						"StreamName":        temp[i].StreamName,
+						"StreamImage":       temp[i].StreamImage,
+						"RelayUserId":       temp[i].RelayUserId,
+						"IsStreaming":			 true,
+					})
+				}
+				new_startIndex := 0
+				totalNumber := endIndex - startIndex - len(temp)
+				pointer := &ArrayRankIdToLeaderBoard1
+				if ArrayRankIdController == 2 {
+					pointer = &ArrayRankIdToLeaderBoard2
+				}
+			
+				GMutex.Lock()
+				count := 0
+				for _, userId := range *pointer {
+					var temp1 map[string]interface{}
+					if _, ok := MapUserIdToStream[userId]; !ok {
+						
+						if count == new_startIndex {
+							b, _ := users.GetUser(userId)
+							if b != nil {
+								temp1 =  b.ToMap()
+							}
+							result = append(result, map[string]interface{}{
+								"BroadcasterId":     userId,
+								"BroadcasterDetail": temp1,
+								"NViewers":          0,
+								"StreamName":        b.Username,
+								"StreamImage":       b.ProfileImage,
+								"RelayUserId":       0,
+								"IsStreaming":			 false,
+							})
+							totalNumber--
+						}
+
+						count++
+
+						if totalNumber == 0 {
+							break
+						}
+					}
+				}
+				GMutex.Unlock()
+			}
+		}
+
+		return result
+
+	default:
+		return nil
+	}
+}
+
+//Cronjob to cache sorted by status list user_id 
+func CJLoadLeaderboard() {
+	startRead := 0
+	numberRowsRead := 100
+	for {
+		rows, e := zdatabase.DbPool.Query(
+			`SELECT user_id, rkey FROM rank_key
+				WHERE rank_id = 16
+				ORDER BY rkey DESC LIMIT $1 OFFSET $2`, numberRowsRead, startRead)
+		if e != nil {
+			continue;
+		}
+
+		rowAdded :=0
+		for rows.Next() {
+			var user_id int64
+			var rkey float64
+			e1 := rows.Scan(&user_id, &rkey)
+			if e1 != nil {
+				fmt.Println(e1)
+				break
+			}
+			rowAdded++
+			if ArrayRankIdController == 1 {// dang dung cai 1 append vao cai 2
+				ArrayRankIdToLeaderBoard2 = append(ArrayRankIdToLeaderBoard2,user_id)
+			} else {
+				ArrayRankIdToLeaderBoard1 = append(ArrayRankIdToLeaderBoard1,user_id)
+			}
+		}
+		defer rows.Close()
+		if rowAdded == 0 {
+			GMutex.Lock()
+			if ArrayRankIdController == 1 {
+				ArrayRankIdController = 2
+				ArrayRankIdToLeaderBoard1 = nil
+			} else {
+				ArrayRankIdController=1
+				ArrayRankIdToLeaderBoard2=nil
+			}
+			GMutex.Unlock()
+			startRead = 0
+			time.Sleep(5*time.Minute)
+		} else {
+			startRead += rowAdded
+		}
+	}
 }

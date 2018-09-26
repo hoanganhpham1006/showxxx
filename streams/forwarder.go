@@ -31,6 +31,10 @@ func toString(err error, data map[string]interface{}) string {
 	return string(messageB)
 }
 
+func init() {
+	go CJLoadLeaderboard()
+}
+
 func ForwarderListenAndServer() {
 	server := gosocketio.NewServer(transport.GetDefaultWebsocketTransport())
 
