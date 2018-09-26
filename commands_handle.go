@@ -401,6 +401,13 @@ func StreamAllSummaries() (
 	rows := streams.StreamAllSummaries(false)
 	return map[string]interface{}{"Streams": rows}, nil
 }
+
+func StreamAllStreamer(startIndex int, endIndex int, orderType int) (
+	map[string]interface{}, error) {
+		rows := streams.StreamAllStreamer(startIndex, endIndex, orderType)
+		return map[string]interface{}{"Streams": rows}, nil
+	}
+
 func StreamGetMyViewing(viewerId int64) (
 	map[string]interface{}, error) {
 	_, stream := streams.GetViewingStream(viewerId)
