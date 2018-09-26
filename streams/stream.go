@@ -377,7 +377,9 @@ func StreamAllStreamer(startIndex int, endIndex int, orderType int) []map[string
 					var temp1 map[string]interface{}
 					if _, ok := MapUserIdToStream[userId]; !ok {
 						
-						if count == new_startIndex {
+						if count < new_startIndex {
+							count++
+						} else {
 							b, _ := users.GetUser(userId)
 							if b != nil {
 								temp1 =  b.ToMap()
@@ -396,9 +398,6 @@ func StreamAllStreamer(startIndex int, endIndex int, orderType int) []map[string
 
 							totalNumber--
 						}
-
-						count++
-
 						if totalNumber == 0 {
 							break
 						}
@@ -436,7 +435,9 @@ func StreamAllStreamer(startIndex int, endIndex int, orderType int) []map[string
 					var temp1 map[string]interface{}
 					if _, ok := MapUserIdToStream[userId]; !ok {
 						
-						if count == new_startIndex {
+						if count < new_startIndex {
+							count++
+						} else {
 							b, _ := users.GetUser(userId)
 							if b != nil {
 								temp1 =  b.ToMap()
@@ -452,9 +453,6 @@ func StreamAllStreamer(startIndex int, endIndex int, orderType int) []map[string
 							})
 							totalNumber--
 						}
-
-						count++
-
 						if totalNumber == 0 {
 							break
 						}
