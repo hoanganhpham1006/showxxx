@@ -79,6 +79,7 @@ type Message struct {
 	ConversationId int64
 	SenderId       int64
 	MessageContent string
+	Gift					 Gift
 	DisplayType    string
 	CreatedTime    time.Time
 	Recipients     map[int64]*Recipient
@@ -259,24 +260,39 @@ func LoadConversationPairId(uid1 int64, uid2 int64) int64 {
 func LoadMessage(mid int64) (*Message, error) {
 	row := zdatabase.DbPool.QueryRow(
 		`SELECT conversation_id, sender_id, message_content,
-    		created_time, display_type
+    		created_time, display_type, gift_id
         FROM conversation_message
         WHERE message_id = $1`,
 		mid,
 	)
 	var conversation_id, sender_id int64
+	var gift_id sql.NullInt64
 	var message_content, display_type string
 	var created_time time.Time
 	e := row.Scan(&conversation_id, &sender_id, &message_content,
-		&created_time, &display_type)
+		&created_time, &display_type, &gift_id)
 	if e != nil {
 		return nil, errors.New("LoadMessage:" + e.Error())
 	}
+
+	var gift Gift
+	
+	if gift_id.Valid {
+		for _, tmp := range GiftList {
+			if tmp.Id == gift_id.Int64 {
+				gift = tmp
+				break
+			}
+		}
+	}
+
 	msg := &Message{
 		MessageId: mid, ConversationId: conversation_id, SenderId: sender_id,
 		MessageContent: message_content, CreatedTime: created_time,
 		DisplayType: display_type, Recipients: make(map[int64]*Recipient),
 	}
+	msg.Gift = gift
+
 	rows3, e := zdatabase.DbPool.Query(
 		`SELECT recipient_id, has_seen, seen_time
 		FROM conversation_message_recipient
@@ -574,6 +590,79 @@ func CreateMessage(
 	        (conversation_id, sender_id, message_content, display_type)
 	    VALUES ($1, $2, $3, $4) RETURNING message_id`,
 		conversationId, senderId, messageContent, displayType)
+	var mid int64
+	e = row.Scan(&mid)
+	if e != nil {
+		return errors.New("CreateMessage Insert message: " + e.Error())
+	}
+	//
+	temps := []string{}
+	args := []interface{}{}
+	i := 0
+	for uid, _ := range conversation.Members {
+		temps = append(temps, fmt.Sprintf("($%v, $%v)", 2*i+1, 2*i+2))
+		args = append(args, []interface{}{mid, uid}...)
+		i += 1
+	}
+	queryPart := strings.Join(temps, ", ")
+	_, e = zdatabase.DbPool.Exec(fmt.Sprintf(
+		`INSERT INTO conversation_message_recipient
+		    (message_id, recipient_id)
+		VALUES %v`, queryPart),
+		args...)
+	if e != nil {
+		return errors.New("CreateMessage Insert recipient " + e.Error())
+	}
+	//
+	msg, e := LoadMessage(mid)
+	if e != nil {
+		return errors.New("CreateMessage LoadMessage " + e.Error())
+	}
+	conversation.Mutex.Lock()
+	conversation.Messages = append(conversation.Messages, msg)
+	conversation.Mutex.Unlock()
+	//
+	conversation.Mutex.Lock()
+	for _, member := range conversation.Members {
+		if !member.IsMute {
+			nbackend.WriteMapToUserId(member.UserId, nil,
+				map[string]interface{}{
+					"Command":    COMMAND_NEW_MESSAGE,
+					"NewMessage": msg.ToMap(),
+				})
+		}
+	}
+	conversation.Mutex.Unlock()
+	return nil
+}
+
+func CreateCheerMessage(
+	conversationId int64, senderId int64, messageContent string,
+	giftId int64, displayType string) error {
+	fmt.Println("CHEER GIFT MESS GIFT_ID: ", giftId)
+	conversation, e := GetConversation(conversationId)
+	if conversation == nil {
+		return e
+	}
+	conversation.Mutex.Lock()
+	sender := conversation.Members[senderId]
+	conversation.Mutex.Unlock()
+	senderU, _ := users.GetUser(senderId)
+	if senderU == nil {
+		return errors.New(l.Get(l.M022InvalidUserId))
+	}
+	if sender == nil && senderU.Role != users.ROLE_ADMIN {
+		return errors.New(l.Get(l.M003ConversationOutsider))
+	}
+	if sender.IsBlocked {
+		return errors.New(l.Get(l.M004ConversationBlockedMember))
+	}
+	//
+	row := zdatabase.DbPool.QueryRow(
+		`INSERT INTO conversation_message
+	        (conversation_id, sender_id, message_content, gift_id, display_type)
+	    VALUES ($1, $2, $3, $4, $5) RETURNING message_id`,
+		conversationId, senderId, messageContent, giftId ,displayType)
 	var mid int64
 	e = row.Scan(&mid)
 	if e != nil {

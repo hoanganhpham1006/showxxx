@@ -218,6 +218,9 @@ CREATE TABLE public.conversation_message (
     created_time TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 ALTER TABLE public.conversation_message OWNER TO vic_user;
+ALTER TABLE public.conversation_message ADD gift_id BIGINT;
+ALTER TABLE public.conversation_message ADD FOREIGN KEY (gift_id) REFERENCES public.gift(id);
+
 CREATE INDEX conversation_message_i01 ON public.conversation_message USING btree
     (conversation_id, created_time);
 
@@ -247,6 +250,9 @@ CREATE TABLE public.conversation_cheer (
     created_time TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
     misc TEXT DEFAULT ''
 );
+ALTER TABLE public.conversation_cheer ADD gift_id BIGINT;
+ALTER TABLE public.conversation_cheer ADD FOREIGN KEY (gift_id) REFERENCES public.gift(id);
+
 CREATE INDEX conversation_cheer_i01 ON public.conversation_cheer USING btree
     (cheerer_id, created_time);
 CREATE INDEX conversation_cheer_i02 ON public.conversation_cheer USING btree
