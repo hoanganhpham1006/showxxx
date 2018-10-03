@@ -63,6 +63,7 @@ type Conversation struct {
 	// map userId to memberInConversation
 	Members  map[int64]*Member
 	Messages []*Message `json:"-"`
+	SenderIds []int64
 	Mutex    sync.Mutex
 }
 
@@ -204,7 +205,7 @@ func LoadConversation(cid int64, nMsgLimit int) (*Conversation, error) {
 	//
 	conversation.Messages = make([]*Message, 0)
 	rows2, e := zdatabase.DbPool.Query(
-		`SELECT message_id
+		`SELECT message_id, sender_id
 	    FROM conversation_message WHERE conversation_id = $1
 	    ORDER BY created_time DESC LIMIT $2`,
 		cid, N_MESSAGE_DEFAULT)
@@ -213,8 +214,8 @@ func LoadConversation(cid int64, nMsgLimit int) (*Conversation, error) {
 	}
 	defer rows2.Close()
 	for rows2.Next() {
-		var message_id int64
-		e = rows2.Scan(&message_id)
+		var message_id, sender_id int64
+		e = rows2.Scan(&message_id, &sender_id)
 		if e != nil {
 			return nil, e
 		}
@@ -223,6 +224,16 @@ func LoadConversation(cid int64, nMsgLimit int) (*Conversation, error) {
 			return nil, errors.New("LoadConversation LoadMessage:" + e.Error())
 		}
 		conversation.Messages = append([]*Message{msg}, conversation.Messages...)
+		
+		hadSenderId := false
+		for _, id := range conversation.SenderIds {
+			if id == sender_id {
+				hadSenderId = true
+			}
+		}
+		if !hadSenderId {
+			conversation.SenderIds = append(conversation.SenderIds, sender_id)
+		}
 	}
 	//
 	GMutex.Lock()
