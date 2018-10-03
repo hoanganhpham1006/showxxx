@@ -21,9 +21,9 @@ func Test02(t *testing.T) {
 	//	for i := 0; i < 1; i++ {
 	//	serverAddr := fmt.Sprintf("ws://localhost%v/ws", zconfig.ProxyPort)
 	//	serverAddr := fmt.Sprintf("ws://43.239.221.117%v/ws", zconfig.ProxyPort)
-	//	serverAddr := fmt.Sprintf("ws://43.239.221.117%v/ws", zconfig.BackendPort)
-	//	serverAddr := "ws://149.28.154.5:2052/ws"
-	serverAddr := "wss://43.239.221.117:20001/ws"
+	serverAddr := fmt.Sprintf("ws://43.239.221.117%v/ws", zconfig.BackendPort)
+	//	serverAddr := "ws://tung:2053/ws"
+	//	serverAddr := "ws://localhost:20001/ws"
 	wsConn, _, e := websocket.DefaultDialer.Dial(serverAddr, nil)
 	if e != nil {
 		t.Error(e)
@@ -46,14 +46,14 @@ func Test02(t *testing.T) {
 	//		"Username": "daominah",
 	//		"Password": "123qwe",
 	//	})
-	c.WriteMap(nil, map[string]interface{}{
-		"method": "auth",
-		"data": map[string]interface{}{
-			"type":     "auth_player_by_password",
-			"username": "daominah",
-			"password": "123qwe",
-		},
-	})
+	//	c.WriteMap(nil, map[string]interface{}{
+	//		"method": "auth",
+	//		"data": map[string]interface{}{
+	//			"type":     "auth_player_by_password",
+	//			"username": "daominah",
+	//			"password": "123qwe",
+	//		},
+	//	})
 	time.Sleep(500 * time.Millisecond)
 	//	i := 0
 	//	for {
@@ -100,7 +100,7 @@ func Test02(t *testing.T) {
 	//			"TargetId": 7,
 	//		})
 
-	//	c.WriteMap(nil, map[string]interface{}{"ClientIpAddr": "171.224.91.47", "Command": "ConversationAllSummaries", "CommandId": 4, "ConnId": 5162, "Filter": "FILTER_ALL", "NConversation": 100, "ProxyId": 1535791370987156113, "SourceUserId": 1903})
+	c.WriteMap(nil, map[string]interface{}{"ClientIpAddr": "171.224.91.47", "Command": "ConversationAllSummaries", "CommandId": 4, "ConnId": 5162, "Filter": "FILTER_ALL", "NConversation": 100, "ProxyId": 1535791370987156113, "SourceUserId": 1903})
 
 	//	c.WriteMap(nil, map[string]interface{}{
 	//		"method": "TangkasquChooseBaseMoney",

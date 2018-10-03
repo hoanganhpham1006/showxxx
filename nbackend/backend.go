@@ -143,19 +143,12 @@ func (proxy *Proxy) doAfterClosingBackendConnection(
 	proxy.Mutex.Unlock()
 }
 
-func (proxy *Proxy) ListenToClients(isTls bool, certFile string, keyFile string) {
+func (proxy *Proxy) ListenToClients() {
 	proxy.Server = nwebsocket.CreateServer(
 		zconfig.LimitNConnsPerIp, zconfig.LimitNRequestsPerSecond)
-	if !isTls {
-		proxy.Server.ListenAndServe(zconfig.ProxyPort,
-			proxy.doAfterReceivingClientMessage,
-			proxy.doAfterClosingClientConnection)
-	} else {
-		proxy.Server.ListenAndServeTLS(zconfig.ProxyPort,
-			proxy.doAfterReceivingClientMessage,
-			proxy.doAfterClosingClientConnection,
-			isTls, certFile, keyFile)
-	}
+	proxy.Server.ListenAndServe(zconfig.ProxyPort,
+		proxy.doAfterReceivingClientMessage,
+		proxy.doAfterClosingClientConnection)
 }
 
 // get a random connection from the pool (proxy.MapBackendConn)

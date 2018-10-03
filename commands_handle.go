@@ -290,13 +290,6 @@ func Cheer(conversation_id int64, cheerer_id int64, target_user_id int64,
 	return nil, err
 }
 
-func CheerGift(conversation_id int64, cheerer_id int64, target_user_id int64, 
-	cheer_type string, gift_id int64, cheer_message string) (
-	map[string]interface{}, error) {
-		err := conversations.CheerGift(conversation_id, cheerer_id, target_user_id, cheer_type, gift_id, cheer_message)
-		return nil, err
-	}
-
 func MoneyCharge(userId int64, data map[string]interface{}, args ...interface{},
 ) (map[string]interface{}, error) {
 	return users.MoneyIOCharge(userId, data)
@@ -408,13 +401,6 @@ func StreamAllSummaries() (
 	rows := streams.StreamAllSummaries(false)
 	return map[string]interface{}{"Streams": rows}, nil
 }
-
-func StreamAllStreamer(startIndex int, endIndex int, orderType int) (
-	map[string]interface{}, error) {
-		rows := streams.StreamAllStreamer(startIndex, endIndex, orderType)
-		return map[string]interface{}{"Streams": rows}, nil
-	}
-
 func StreamGetMyViewing(viewerId int64) (
 	map[string]interface{}, error) {
 	_, stream := streams.GetViewingStream(viewerId)
