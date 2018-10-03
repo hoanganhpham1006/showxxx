@@ -31,6 +31,10 @@ func toString(err error, data map[string]interface{}) string {
 	return string(messageB)
 }
 
+func init() {
+	go CJLoadLeaderboard()
+}
+
 func ForwarderListenAndServer() {
 	server := gosocketio.NewServer(transport.GetDefaultWebsocketTransport())
 
@@ -108,7 +112,10 @@ func ForwarderListenAndServer() {
 	go func() {
 		fmt.Printf("Listening socketIo on address host%v/socket.io/\n",
 			zconfig.WebRTCSignalingPort)
-		err := http.ListenAndServe(zconfig.WebRTCSignalingPort, serveMux)
+		err := http.ListenAndServeTLS(
+			zconfig.WebRTCSignalingPort,
+			"nreverseproxy/cert.pem", "nreverseproxy/key.pem",
+			serveMux)
 		if err != nil {
 			fmt.Printf("Fail to listen socketIo on address host%v/socket.io/\n %v\n",
 				zconfig.WebRTCSignalingPort, err.Error())

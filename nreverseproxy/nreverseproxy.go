@@ -7,6 +7,7 @@ import (
 func main() {
 	proxy := nbackend.CreateProxy()
 	go proxy.ConnectToBackend()
-	go proxy.ListenToClients()
+	isTls, certFile, keyFile := true, "cert.pem", "key.pem"
+	go proxy.ListenToClients(isTls, certFile, keyFile)
 	select {}
 }
