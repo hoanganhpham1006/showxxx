@@ -224,16 +224,24 @@ func LoadConversation(cid int64, nMsgLimit int) (*Conversation, error) {
 			return nil, errors.New("LoadConversation LoadMessage:" + e.Error())
 		}
 		conversation.Messages = append([]*Message{msg}, conversation.Messages...)
-		
-		hadSenderId := false
-		for _, id := range conversation.SenderIds {
-			if id == sender_id {
-				hadSenderId = true
-			}
+	}
+	conversation.SenderIds = make([]int64, 0)
+	rows3, e := zdatabase.DbPool.Query(
+		`SELECT DISTINCT sender_id
+	    FROM conversation_message WHERE conversation_id = $1`,
+		cid)
+	if e != nil {
+		return nil, errors.New("LoadConversation LoadSenderIds:" + e.Error())
+	}
+
+	defer rows3.Close()
+	for rows3.Next() {
+		var sender_id int64
+		e = rows3.Scan(&sender_id)
+		if e != nil {
+			return nil, e
 		}
-		if !hadSenderId {
-			conversation.SenderIds = append(conversation.SenderIds, sender_id)
-		}
+		conversation.SenderIds = append(conversation.SenderIds, sender_id)
 	}
 	//
 	GMutex.Lock()
