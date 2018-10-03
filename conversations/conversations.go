@@ -205,7 +205,7 @@ func LoadConversation(cid int64, nMsgLimit int) (*Conversation, error) {
 	//
 	conversation.Messages = make([]*Message, 0)
 	rows2, e := zdatabase.DbPool.Query(
-		`SELECT message_id, sender_id
+		`SELECT message_id
 	    FROM conversation_message WHERE conversation_id = $1
 	    ORDER BY created_time DESC LIMIT $2`,
 		cid, N_MESSAGE_DEFAULT)
@@ -214,8 +214,8 @@ func LoadConversation(cid int64, nMsgLimit int) (*Conversation, error) {
 	}
 	defer rows2.Close()
 	for rows2.Next() {
-		var message_id, sender_id int64
-		e = rows2.Scan(&message_id, &sender_id)
+		var message_id int64
+		e = rows2.Scan(&message_id)
 		if e != nil {
 			return nil, e
 		}
@@ -224,17 +224,27 @@ func LoadConversation(cid int64, nMsgLimit int) (*Conversation, error) {
 			return nil, errors.New("LoadConversation LoadMessage:" + e.Error())
 		}
 		conversation.Messages = append([]*Message{msg}, conversation.Messages...)
-		
-		hadSenderId := false
-		for _, id := range conversation.SenderIds {
-			if id == sender_id {
-				hadSenderId = true
-			}
-		}
-		if !hadSenderId {
-			conversation.SenderIds = append(conversation.SenderIds, sender_id)
-		}
 	}
+
+	rows3, e := zdatabase.DbPool.Query(
+		`SELECT DISTINCT sender_id
+	    FROM conversation_message WHERE conversation_id = $1
+	    ORDER BY created_time`,
+		cid)
+	if e != nil {
+		return nil, errors.New("LoadConversation SenderIds:" + e.Error())
+	}
+
+	defer rows3.Close()
+	for rows3.Next() {
+		var sender_id int64
+		e = rows3.Scan(&sender_id)
+		if e != nil {
+			return nil, e
+		}
+		conversation.SenderIds = append(conversation.SenderIds, sender_id)
+	}
+
 	//
 	GMutex.Lock()
 	MapConversations[cid] = conversation
