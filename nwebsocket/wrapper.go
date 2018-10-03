@@ -60,28 +60,9 @@ func (server *Server) ListenAndServe(
 	doAfterReceivingMessage func(connection *Connection, message []byte),
 	doAfterClosingConnection func(connection *Connection),
 ) {
-	server.ListenAndServeTLS(
-		port, doAfterReceivingMessage, doAfterClosingConnection,
-		false, "", "")
-}
-
-//
-func (server *Server) ListenAndServeTLS(
-	port string,
-	doAfterReceivingMessage func(connection *Connection, message []byte),
-	doAfterClosingConnection func(connection *Connection),
-	isTls bool, certFile string, keyFile string,
-) {
 	go func() {
 		fmt.Printf("Listening websocket on address host%v/ws\n", port)
-		var err error
-		if !isTls {
-			fmt.Println("http.ListenAndServe")
-			err = http.ListenAndServe(port, nil)
-		} else {
-			fmt.Println("http.ListenAndServeTLS")
-			err = http.ListenAndServeTLS(port, certFile, keyFile, nil)
-		}
+		err := http.ListenAndServe(port, nil)
 		if err != nil {
 			fmt.Printf("Fail to listen websocket on address host%v/ws\n %v\n",
 				port, err.Error())
