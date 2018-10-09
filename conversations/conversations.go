@@ -226,7 +226,6 @@ func LoadConversation(cid int64, nMsgLimit int) (*Conversation, error) {
 		conversation.Messages = append([]*Message{msg}, conversation.Messages...)
 	}
 
-	senderIds := make([]int64, 0)
 	rows3, e := zdatabase.DbPool.Query(
 		`SELECT DISTINCT sender_id
 	    FROM conversation_message WHERE conversation_id = $1`,
@@ -242,9 +241,8 @@ func LoadConversation(cid int64, nMsgLimit int) (*Conversation, error) {
 		if e != nil {
 			return nil, e
 		}
-		senderIds = append(senderIds, sender_id)
+		conversation.SenderIds = append([]int64{sender_id}, conversation.SenderIds...)
 	}
-	conversation.SenderIds = senderIds
 	//
 	GMutex.Lock()
 	MapConversations[cid] = conversation
@@ -639,8 +637,18 @@ func CreateMessage(
 	if e != nil {
 		return errors.New("CreateMessage LoadMessage " + e.Error())
 	}
-	conversation.Mutex.Lock()
 	conversation.Messages = append(conversation.Messages, msg)
+	hasSenderId := false
+	for _, tmp := range conversation.SenderIds {
+		if senderId == tmp {
+			hasSenderId = true
+			break
+		}
+	}
+	conversation.Mutex.Lock()
+	if !hasSenderId {
+		conversation.SenderIds = append(conversation.SenderIds, senderId)
+	}
 	conversation.Mutex.Unlock()
 	//
 	conversation.Mutex.Lock()

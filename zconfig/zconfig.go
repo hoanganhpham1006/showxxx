@@ -17,7 +17,7 @@ const (
 	BackendIp   = "127.0.0.1"
 	BackendPort = ":20004"
 
-	IsDeveloping       = true
+	IsDeveloping       = false
 	BackendProfilePort = ":20000"
 
 	ProxyPort           = ":20001"
