@@ -473,6 +473,7 @@ func SGameEggSendMove(
 	if err != nil {
 		return nil, err
 	}
+	time.Sleep(100 * time.Millisecond)
 	err = match.SendMove(data)
 	return nil, err
 }
