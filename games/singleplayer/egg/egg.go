@@ -3,7 +3,7 @@ package egg
 import (
 	"encoding/json"
 	"math/rand"
-	//	"fmt"
+	// "fmt"
 	"errors"
 	"time"
 
@@ -71,6 +71,7 @@ func (match *EggMatch) ToMap() map[string]interface{} {
 func (match *EggMatch) UpdateMatch(command string) {
 	data := match.ToMap()
 	data["Command"] = command
+	data["abc"] = "abc"
 	data["TurnRemainingSeconds"] =
 		match.TurnStartedTime.Add(DURATION_TURN).Sub(time.Now()).Seconds()
 	nbackend.WriteMapToUserId(match.UserId, nil, data)
