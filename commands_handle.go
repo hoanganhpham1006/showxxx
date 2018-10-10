@@ -475,7 +475,7 @@ func SGameEggSendMove(
 	}
 	time.Sleep(100 * time.Millisecond)
 	err = match.SendMove(data)
-	return nil, err
+	return map[string]interface{}{"Result": match}, err
 }
 
 func MGameCarSendMove(
